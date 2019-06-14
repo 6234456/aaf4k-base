@@ -9,15 +9,21 @@ import java.util.*
 /**
  * class time span
  * @author   Qiou Yang
+ * @param start the start date of the time span
+ * @param end   the end date of the time span
  * @since    1.0.0
  * @version  1.0.0
  */
 data class TimeSpan(val start: LocalDate, val end: LocalDate) {
 
-    data class ChronoSpan(val amount:Long = 1, val unit: ChronoUnit = ChronoUnit.MONTHS)
+    data class ChronoSpan(val amount: Long = 1, val unit: ChronoUnit = ChronoUnit.MONTHS) {
+        init {
+            if (amount <= 0) throw Exception("the amount of ChronoSpan can not be negative: $amount provided")
+        }
+    }
 
     var drillDownTo = ChronoSpan(1, ChronoUnit.MONTHS)
-    var rollUpTo = setOf<ChronoSpan>(ChronoSpan(1, ChronoUnit.YEARS))
+    var rollUpTo = setOf(ChronoSpan(1, ChronoUnit.YEARS))
 
     private constructor():this(LocalDate.now(), LocalDate.now())
 
@@ -137,7 +143,7 @@ data class TimeSpan(val start: LocalDate, val end: LocalDate) {
 
     fun getContainingWeek():TimeSpan {
         if(! isInOneWeek()) throw Exception("${this} expands across multiple weeks")
-        val mondayOftheWeek = this.start + ChronoUnit.DAYS * (this.start.dayOfWeek.value - 1 )
+        val mondayOftheWeek = this.start - ChronoUnit.DAYS * (this.start.dayOfWeek.value - 1)
         return TimeSpan(mondayOftheWeek, mondayOftheWeek + ChronoUnit.DAYS * 6)
     }
 
