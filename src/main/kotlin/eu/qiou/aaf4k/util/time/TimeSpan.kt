@@ -8,11 +8,11 @@ import java.util.*
 
 /**
  * class time span
- * @author   Qiou Yang
+ * @author      Qiou Yang
  * @param start the start date of the time span
  * @param end   the end date of the time span
- * @since    1.0.0
- * @version  1.0.0
+ * @since       1.0.0
+ * @version     1.0.0
  */
 data class TimeSpan(val start: LocalDate, val end: LocalDate) {
 
@@ -39,7 +39,6 @@ data class TimeSpan(val start: LocalDate, val end: LocalDate) {
     fun getParents(): Collection<TimeSpan>? {
         return rollUp()
     }
-
 
     operator fun contains(date: LocalDate):Boolean{
         return date in start..end
@@ -75,7 +74,7 @@ data class TimeSpan(val start: LocalDate, val end: LocalDate) {
 
     fun drillDown(interval: Long = drillDownTo.amount, unit: ChronoUnit = drillDownTo.unit): ArrayList<TimeSpan> {
         val res = ArrayList<TimeSpan>()
-        var start = start
+        var start = if (unit == ChronoUnit.WEEKS) start.startOfWeek() else start
 
         var tmp: LocalDate
 
@@ -91,10 +90,10 @@ data class TimeSpan(val start: LocalDate, val end: LocalDate) {
         return rollUpTo.map{
             when(it) {
                 ChronoSpan(1, ChronoUnit.YEARS) -> getContainingYear()
-                ChronoSpan(6, ChronoUnit.MONTHS) ->getContainingHalfYear()
-                ChronoSpan(4, ChronoUnit.MONTHS) ->getContainingQuarter()
-                ChronoSpan(1, ChronoUnit.MONTHS) ->getContainingMonth()
-                ChronoSpan(1, ChronoUnit.WEEKS) ->getContainingWeek()
+                ChronoSpan(6, ChronoUnit.MONTHS) -> getContainingHalfYear()
+                ChronoSpan(4, ChronoUnit.MONTHS) -> getContainingQuarter()
+                ChronoSpan(1, ChronoUnit.MONTHS) -> getContainingMonth()
+                ChronoSpan(1, ChronoUnit.WEEKS) -> getContainingWeek()
                 else -> throw Exception("Unknown Unit: $it.")
             }
         }
@@ -143,8 +142,8 @@ data class TimeSpan(val start: LocalDate, val end: LocalDate) {
 
     fun getContainingWeek():TimeSpan {
         if(! isInOneWeek()) throw Exception("${this} expands across multiple weeks")
-        val mondayOftheWeek = this.start - ChronoUnit.DAYS * (this.start.dayOfWeek.value - 1)
-        return TimeSpan(mondayOftheWeek, mondayOftheWeek + ChronoUnit.DAYS * 6)
+        val mondayOfTheWeek = this.start - ChronoUnit.DAYS * (this.start.dayOfWeek.value - 1)
+        return TimeSpan(mondayOfTheWeek, mondayOfTheWeek + ChronoUnit.DAYS * 6)
     }
 
     fun getContainingQuarter():TimeSpan {
@@ -162,6 +161,18 @@ data class TimeSpan(val start: LocalDate, val end: LocalDate) {
             return TimeSpan(LocalDate.of(year, 1, 1), LocalDate.of(year, 12, 31))
         }
 
+        // containing the first Thursday of the year
+        fun forWeek(year: Int, week: Int, minimumDaysContaining: Int = 4): TimeSpan {
+            return when {
+                LocalDate.of(year, 1, 1).dayOfWeek.value <= minimumDaysContaining -> LocalDate.of(year, 1, 1)
+                else -> LocalDate.of(year, 1, 8)
+            }.let { TimeSpan(it.startOfWeek(), it.endOfWeek()) + ChronoUnit.WEEKS * (week - 1) }.let {
+                if (it.start.year > year || it.end.year < year) throw Exception("Outside the Boundary: $year has no week $week.")
+
+                it
+            }
+        }
+
         fun forHalfYear(year: Int, firstHalf: Boolean = true): TimeSpan {
             return if(firstHalf) TimeSpan(LocalDate.of(year, 1, 1), LocalDate.of(year, 6, 30))
                         else TimeSpan(LocalDate.of(year, 7, 1), LocalDate.of(year, 12, 31))
@@ -169,7 +180,17 @@ data class TimeSpan(val start: LocalDate, val end: LocalDate) {
 
         fun forMonth(year: Int, month: Int): TimeSpan {
             val start = LocalDate.of(year, month, 1)
-            return TimeSpan(start, LocalDate.of(year, month, start.lengthOfMonth()))
+            return TimeSpan(start, LocalDate.of(year, month, start.lengthOfMonth())).apply {
+                drillDownTo = ChronoSpan(1, ChronoUnit.DAYS)
+            }
+        }
+
+        fun forDay(year: Int, month: Int, day: Int): TimeSpan {
+            return LocalDate.of(year, month, day).let {
+                TimeSpan(it, it).apply {
+                    drillDownTo = ChronoSpan(1, ChronoUnit.DAYS)
+                }
+            }
         }
 
         fun forQuarter(year: Int, quarter: Int): TimeSpan {
@@ -195,7 +216,9 @@ fun LocalDate.isEndOfMonth() = this.plusDays(1).month != this.month
 fun LocalDate.toEndOfMonth() = this.plusMonths(1).withDayOfMonth(1).minusDays(1)!!
 
 fun LocalDate.startOfNextMonth() = this.withDayOfMonth(1).plusMonths(1)!!
-fun LocalDate.endOfNextMonth() = this.startOfNextMonth().minusDays(1)
+fun LocalDate.endOfMonth() = this.startOfNextMonth().minusDays(1)!!
+fun LocalDate.endOfWeek(): LocalDate = this.plusDays(7L - this.dayOfWeek.value)
+fun LocalDate.startOfWeek(): LocalDate = this.minusDays(this.dayOfWeek.value - 1L)
 
 fun LocalDate.to(ends: LocalDate, withIntervalUnit: ChronoUnit = ChronoUnit.YEARS, withIntervalAmount: Int = 1): List<LocalDate> {
     val res = mutableListOf<LocalDate>()
@@ -208,6 +231,10 @@ fun LocalDate.to(ends: LocalDate, withIntervalUnit: ChronoUnit = ChronoUnit.YEAR
         } else {
             res.add(tmp)
             tmp = this + (withIntervalUnit * (withIntervalAmount * cnt))
+
+            if (withIntervalUnit == ChronoUnit.MONTHS && isEndOfMonth())
+                tmp = tmp.toEndOfMonth()
+
             cnt++
         }
     }
@@ -223,7 +250,7 @@ fun LocalDate.ofNext(terms: Int, withIntervalUnit: ChronoUnit = ChronoUnit.YEARS
         res.add(tmp)
         tmp = this + (withIntervalUnit * (withIntervalAmount * cnt))
 
-        if (this.isEndOfMonth() && withIntervalUnit == ChronoUnit.MONTHS)
+        if (withIntervalUnit == ChronoUnit.MONTHS && isEndOfMonth())
             tmp = tmp.toEndOfMonth()
     }
 

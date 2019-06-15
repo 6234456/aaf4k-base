@@ -100,5 +100,9 @@ data class TimeParameters(val timeSpan: TimeSpan? = null, val timePoint: LocalDa
         fun forQuarter(year:Int, quarter: Int):TimeParameters {
             return TimeParameters(timeSpan = TimeSpan.forQuarter(year, quarter))
         }
+
+        fun forWeek(year: Int, week: Int, minimumDaysContaining: Int = 4): TimeParameters {
+            return TimeParameters(timeSpan = TimeSpan.forWeek(year, week, minimumDaysContaining))
+        }
     }
 }
