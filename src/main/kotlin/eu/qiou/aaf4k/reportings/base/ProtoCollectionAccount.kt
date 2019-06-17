@@ -46,7 +46,10 @@ interface ProtoCollectionAccount : ProtoAccount, Drilldownable<ProtoCollectionAc
 
     override fun nullify(): ProtoAccount {
         return (deepCopy() as ProtoCollectionAccount).apply {
-            addAll(subAccounts.map { it.nullify() })
+            subAccounts.map { it.nullify() }.let {
+                subAccounts.clear()
+                subAccounts.addAll(it)
+            }
         }
     }
 }

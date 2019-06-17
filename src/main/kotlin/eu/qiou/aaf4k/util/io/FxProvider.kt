@@ -15,15 +15,14 @@ abstract class FxProvider {
         if (target.functionalCurrency == target.reportingCurrency)
             return 1.0
 
-        if (useCache) {
-            if (cache.containsKey(target)) {
-                return cache[target]!!
-            }
-        }
+        if (useCache && cache.containsKey(target))
+            return cache[target]!!
 
         val res = fetchFxFromSource(target)
 
-        cache[target] = res
+        if (useCache)
+            cache[target] = res
+
         return res
     }
 

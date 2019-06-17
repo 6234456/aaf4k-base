@@ -3,7 +3,15 @@ package eu.qiou.aaf4k.util.unit
 import java.util.*
 
 
-class EnumerationUnit(val unitSingular:String, var unitPlural:String = unitSingular, var unitNull:String = unitSingular):ProtoUnit() {
+class EnumerationUnit(
+    private val unitSingular: String,
+    private val unitPlural: String = unitSingular,
+    private val unitNull: String = unitSingular
+) : ProtoUnit() {
+    override fun toJSON(): String {
+        return """{"singular":"$unitSingular", "plural":"$unitPlural", "null": $unitNull, "type": "enumerationUnit"}"""
+    }
+
     override fun format(locale: Locale): (Number) -> String {
         return { a ->
             val b = a.toInt()

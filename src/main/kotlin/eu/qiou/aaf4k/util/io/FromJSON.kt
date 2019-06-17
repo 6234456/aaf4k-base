@@ -6,6 +6,10 @@ import eu.qiou.aaf4k.util.time.TimeAttribute
 import eu.qiou.aaf4k.util.time.TimeParameters
 import eu.qiou.aaf4k.util.time.TimeSpan
 import eu.qiou.aaf4k.util.time.parseTimeAttribute
+import eu.qiou.aaf4k.util.unit.CurrencyUnit
+import eu.qiou.aaf4k.util.unit.EnumerationUnit
+import eu.qiou.aaf4k.util.unit.PercentageUnit
+import eu.qiou.aaf4k.util.unit.ProtoUnit
 import org.json.simple.JSONArray
 import org.json.simple.JSONObject
 import org.json.simple.parser.JSONParser
@@ -17,12 +21,11 @@ import kotlin.math.roundToInt
 object FromJSON {
 
     fun account(json: JSONObject): ProtoAccount {
-
         val hasSubAccounts = json["hasSubAccounts"] as Boolean
         val validate = json["validateUntil"]
-
         val date = if (validate == null) null else LocalDate.parse(validate as String)
 
+        val timeParameters = json["timeParameters"].let { if (it == null) null else timeParameters(it as JSONObject) }
 
         return if (hasSubAccounts) {
             CollectionAccount(
@@ -32,10 +35,13 @@ object FromJSON {
                     decimalPrecision = (json["decimalPrecision"] as Long).toInt(),
                     isStatistical = json["isStatistical"] as Boolean,
                     validateUntil = date,
-                    reportingType = parseReportingType(json["reportingType"] as String)
+                reportingType = parseReportingType(json["reportingType"] as String),
+                unit = unit(json["unit"] as JSONObject),
+                displayUnit = unit(json["displayUnit"] as JSONObject),
+                timeParameters = timeParameters
             ).apply {
                 (json["subAccounts"] as JSONArray).forEach {
-                    account(it as JSONObject)
+                    this.add(account(it as JSONObject))
                 }
             }
         } else {
@@ -46,10 +52,29 @@ object FromJSON {
                     isStatistical = json["isStatistical"] as Boolean,
                     validateUntil = date,
                     decimalPrecision = (json["decimalPrecision"] as Long).toInt(),
-                    reportingType = parseReportingType(json["reportingType"] as String)
-                    ).copyWith(value = json["value"] as Double, decimalPrecision = (json["decimalPrecision"] as Long).toInt())
+                reportingType = parseReportingType(json["reportingType"] as String),
+                unit = unit(json["unit"] as JSONObject),
+                displayUnit = unit(json["displayUnit"] as JSONObject),
+                timeParameters = timeParameters
+            ).copyWith(value = json["value"] as Double, decimalPrecision = (json["decimalPrecision"] as Long).toInt())
         }
+    }
 
+    fun unit(json: JSONObject): ProtoUnit {
+        return when (json["type"] as String) {
+            "currencyUnit" -> CurrencyUnit(
+                scalar = ProtoUnit.parseUnitType(json["scalar"] as String),
+                currency = Currency.getInstance(json["code"] as String),
+                decimalPrecision = (json["decimalPrecision"] as Long).toInt()
+            )
+            "percentageUnit" -> PercentageUnit.getInstance()
+            "enumerationUnit" -> EnumerationUnit(
+                unitSingular = json["singular"] as String,
+                unitPlural = json["plural"] as String,
+                unitNull = json["null"] as String
+            )
+            else -> throw Exception("Parser unimplemented")
+        }
     }
 
     fun entry(json: JSONObject, category: Category): Entry {

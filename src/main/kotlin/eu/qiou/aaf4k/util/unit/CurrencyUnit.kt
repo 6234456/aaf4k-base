@@ -7,6 +7,9 @@ import kotlin.math.roundToInt
 
 
 data class CurrencyUnit(override val scalar: UnitScalar = UnitScalar.UNIT, val currency: Currency = GlobalConfiguration.DEFAULT_FUNCTIONAL_CURRENCY, val decimalPrecision: Int = GlobalConfiguration.DEFAULT_DECIMAL_PRECISION) : ProtoUnit(scalar) {
+    override fun toJSON(): String {
+        return """{"scalar":"${scalar.token}", "code":"$currencyCode", "decimalPrecision": $decimalPrecision, "type": "currencyUnit"}"""
+    }
 
     constructor(currency: String, decimalPrecision: Int = GlobalConfiguration.DEFAULT_DECIMAL_PRECISION) : this(currency = Currency.getInstance(currency), decimalPrecision = decimalPrecision)
     constructor(scalar: UnitScalar, currency: String, decimalPrecision: Int = GlobalConfiguration.DEFAULT_DECIMAL_PRECISION) : this(scalar, currency = Currency.getInstance(currency), decimalPrecision = decimalPrecision)

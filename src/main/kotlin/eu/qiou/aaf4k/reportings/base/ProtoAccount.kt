@@ -112,11 +112,11 @@ interface ProtoAccount : JSONable, Identifiable {
 
     override fun toJSON(): String {
         if (this is ProtoCollectionAccount) {
-            return """{"id": $id, "name": "$name", "value": $decimalValue, "displayValue": "$textValue", "decimalPrecision": $decimalPrecision, "desc": "$desc", "hasSubAccounts": true, "hasSuperAccounts": ${this.hasParent()}, "isStatistical": $isStatistical, "validateUntil":${if (validateUntil == null) "null" else "'$validateUntil'"}, "reportingType": "${reportingType.code}", "subAccounts": """ +
+            return """{"id": $id, "name": "$name", "value": $decimalValue, "displayValue": "$textValue", "decimalPrecision": $decimalPrecision, "desc": "$desc", "hasSubAccounts": true, "hasSuperAccounts": ${this.hasParent()}, "isStatistical": $isStatistical, "timeParameters":${if (timeParameters == null) "null" else timeParameters!!.toJSON()}, "validateUntil":${if (validateUntil == null) "null" else "'$validateUntil'"}, "unit": ${unit.toJSON()}, "displayUnit": ${displayUnit.toJSON()}, "reportingType": "${reportingType.code}", "subAccounts": """ +
                     CollectionToString.mkJSON(subAccounts as Iterable<JSONable>, ",\n") + "}"
         }
 
-        return """{"id": $id, "name": "$name", "value": $decimalValue, "displayValue": "$textValue", "decimalPrecision": $decimalPrecision, "desc": "$desc", "hasSubAccounts": false, "hasSuperAccounts": ${this.superAccounts.size > 0}, "isStatistical": $isStatistical, "validateUntil":${if (validateUntil == null) "null" else "'$validateUntil'"}, "scalar": ${unit.scalar}, "reportingType": "${reportingType.code}"}"""
+        return """{"id": $id, "name": "$name", "value": $decimalValue, "displayValue": "$textValue", "decimalPrecision": $decimalPrecision, "desc": "$desc", "hasSubAccounts": false, "hasSuperAccounts": ${this.superAccounts.size > 0}, "isStatistical": $isStatistical, "timeParameters":${if (timeParameters == null) "null" else timeParameters!!.toJSON()}, "validateUntil":${if (validateUntil == null) "null" else "'$validateUntil'"}, "unit": ${unit.toJSON()}, "displayUnit": ${displayUnit.toJSON()}, "reportingType": "${reportingType.code}"}"""
 
     }
 

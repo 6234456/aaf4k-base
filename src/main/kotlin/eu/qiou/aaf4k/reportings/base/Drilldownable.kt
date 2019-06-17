@@ -76,7 +76,7 @@ interface Drilldownable<P, C> : Iterable<C> where P : C, C : Identifiable {
             }
         })
 
-        return if (tmp < 0) null else l.get(tmp)
+        return if (tmp < 0) null else l[tmp]
     }
 
     @Suppress("UNCHECKED_CAST")
