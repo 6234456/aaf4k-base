@@ -99,22 +99,15 @@
             <resource>
                 <directory>src/main/resources</directory>
             </resource>
-            <resource>
-                <directory>src/main/resources/locale</directory>
-            </resource>
-
-            <resource>
-                <directory>src/main/resources/data</directory>
-            </resource>
-
-            <resource>
-                <directory>src/main/resources/data/cn</directory>
-            </resource>
-
-            <resource>
-                <directory>src/main/resources/data/de</directory>
-            </resource>
         </resources>
+
+        <testResources>
+            <testResource>
+                <directory>
+                    src/test/resources
+                </directory>
+            </testResource>
+        </testResources>
 
         <plugins>
             <plugin>

@@ -9,7 +9,8 @@ data class Message(val locale: Locale = GlobalConfiguration.DEFAULT_LOCALE) {
         fun of(string: String): String = m.of(string)
     }
 
-    private val msg = ResourceBundle.getBundle("aaf4k", locale)
+    private val msg = ResourceBundle.getBundle("locale/aaf4k", locale)
 
     fun of(string: String): String = msg.getString(string)
+    fun getString(string: String): String = msg.getString(string)
 }

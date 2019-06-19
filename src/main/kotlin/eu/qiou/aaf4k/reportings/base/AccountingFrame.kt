@@ -5,10 +5,10 @@ import eu.qiou.aaf4k.util.groupNearby
 import eu.qiou.aaf4k.util.time.TimeParameters
 import eu.qiou.aaf4k.util.unit.CurrencyUnit
 import eu.qiou.aaf4k.util.unit.ProtoUnit
-import java.nio.file.Files
-import java.nio.file.Paths
+import java.io.BufferedReader
+import java.io.InputStream
+import java.io.InputStreamReader
 import java.time.LocalDate
-import kotlin.streams.toList
 
 class AccountingFrame(override val id: Long, override val name: String, override val desc: String = "", val structure: List<ProtoAccount>): ProtoCollectionAccount {
     override val subAccounts: MutableList<ProtoAccount> = mutableListOf()
@@ -44,9 +44,9 @@ class AccountingFrame(override val id: Long, override val name: String, override
 
     companion object {
 
-        fun inflate(id: Long, frame: String, fileName: String): AccountingFrame {
+        fun inflate(id: Long, frame: String, inputStream: InputStream): AccountingFrame {
 
-            val lines = Files.lines(Paths.get(fileName)).toList().filter { !it.isBlank() }
+            val lines = BufferedReader(InputStreamReader(inputStream)).readLines().filter { !it.isBlank() }
 
             val regIndent = """^(\s*)(\[?)(\d+)""".toRegex()
             val regType = """^\s*[A-Z]{2}\s*$""".toRegex()
@@ -197,16 +197,6 @@ class AccountingFrame(override val id: Long, override val name: String, override
 
                 return AccountingFrame(id, frame, structure = scopeToAccount(0))
             }
-        }
-
-        /**
-         * @param fileName  the name of frame file in format "cn_cas_2018"
-         */
-        fun inflate(id: Long, fileName: String): AccountingFrame {
-            val f = if (fileName.endsWith(".txt")) fileName.removeSuffix(".txt") else fileName
-            val (dir, frame, _) = f.split("_")
-
-            return inflate(id, frame, "data/$dir/$f.txt")
         }
     }
 }

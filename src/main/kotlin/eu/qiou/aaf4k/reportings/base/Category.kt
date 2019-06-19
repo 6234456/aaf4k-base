@@ -67,8 +67,19 @@ class Category(name: String, val desc: String, val reporting: Reporting,
         }
     }
 
-    fun add(entry: Entry) {
+    fun add(entry: Entry): Entry {
         entries.add(entry.apply { id = nextEntryIndex++ })
+
+        return entry
+    }
+
+    fun add(accounts: Map<Long, Double>, desc: String = ""): Entry {
+        if (accounts.values.fold(0.0) { acc, d -> acc + d } != 0.0)
+            throw Exception("The booking entry is not balanced")
+
+        return Entry(desc = desc, category = this).apply {
+            accounts.forEach { add(it.key, it.value) }
+        }
     }
 
     fun toDataMap(): Map<Long, Double> {

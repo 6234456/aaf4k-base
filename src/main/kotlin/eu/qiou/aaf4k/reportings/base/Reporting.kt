@@ -2,6 +2,7 @@ package eu.qiou.aaf4k.reportings.base
 
 import eu.qiou.aaf4k.reportings.GlobalConfiguration
 import eu.qiou.aaf4k.util.foldTrackListInit
+import eu.qiou.aaf4k.util.i18n.Message
 import eu.qiou.aaf4k.util.io.ExcelUtil
 import eu.qiou.aaf4k.util.mergeReduce
 import eu.qiou.aaf4k.util.mkJSON
@@ -169,9 +170,9 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
         if (!consCategoriesAdded && !reclAdjCategoriesAdded) {
 
             val msg = if (locale == null)
-                ResourceBundle.getBundle("aaf4k")
+                Message()
             else
-                ResourceBundle.getBundle("aaf4k", locale)
+                Message(locale)
 
             Category(msg.getString("erstKons"), msg.getString("erstKons"), this, ConsolidationCategory.INIT_EQUITY).apply { id = ERSTKONS_CAT_ID; this@Reporting.nextCategoryIndex-- }
             Category(msg.getString("folgKons"), msg.getString("folgKons"), this, ConsolidationCategory.SUBSEQUENT_EQUITY).apply { id = FOLGEKONS_CAT_ID; this@Reporting.nextCategoryIndex-- }
@@ -186,9 +187,9 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
     fun prepareReclAdj(locale: Locale? = null) {
         if (!consCategoriesAdded && !reclAdjCategoriesAdded) {
             val msg = if (locale == null)
-                ResourceBundle.getBundle("aaf4k")
+                Message()
             else
-                ResourceBundle.getBundle("aaf4k", locale)
+                Message(locale)
 
             Category(msg.getString("adjustment"), msg.getString("adjustment"), this).apply { id == ADJ_CAT_ID; this@Reporting.nextCategoryIndex-- }
             Category(msg.getString("reclassification"), msg.getString("reclassification"), this).apply { id == RCL_CAT_ID; this@Reporting.nextCategoryIndex-- }
@@ -252,7 +253,7 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
              components: Map<Entity, Reporting>? = null
     ): Pair<Sheet, Map<Long, String>> {
 
-        val msg = ResourceBundle.getBundle("aaf4k", locale)
+        val msg = Message(locale)
 
         val titleID: String = msg.getString("accountId")
         val titleName: String = msg.getString("accountName")
