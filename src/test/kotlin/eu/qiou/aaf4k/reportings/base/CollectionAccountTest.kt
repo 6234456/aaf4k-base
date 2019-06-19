@@ -50,7 +50,18 @@ class CollectionAccountTest {
     @Test
     fun getSubAccounts() {
         assertEquals(true, collectionAccount.displayValue.withinTolerance(0.0001, (312.12 + 31212) * 0.7))
+        assertEquals(true, collectionAccount.search(1233L)!!.decimalValue == 0.00)
+        assertEquals(
+            true, (collectionAccount.deepCopy().update(mapOf(12341L to 20000.0)) as CollectionAccount)
+                .search(12341L)!!.decimalValue == 30000.00
+        )
         assertEquals(true, collectionAccount.find { it.id == 12341L }!!.decimalValue == 10000.00)
-        assertEquals(true, collectionAccount.cacheAllList.find { it.id == 1233L }!!.decimalValue == 0.00)
+
+        //after update the structure force update the cache
+        (collectionAccount.search(1234L) as CollectionAccount).add(Account(12342L, "demo", 3))
+        collectionAccount.toUpdate = true
+        assertEquals(true, collectionAccount.search(12342L)!!.value == 3L)
+
+        println((collectionAccount.nullify().update(mapOf(12341L to 20000.0)) as CollectionAccount).shorten())
     }
 }
