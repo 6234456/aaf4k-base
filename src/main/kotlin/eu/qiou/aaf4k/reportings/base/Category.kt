@@ -69,7 +69,6 @@ class Category(name: String, val desc: String, val reporting: Reporting,
 
     fun add(entry: Entry): Entry {
         entries.add(entry.apply { id = nextEntryIndex++ })
-
         return entry
     }
 
@@ -79,15 +78,24 @@ class Category(name: String, val desc: String, val reporting: Reporting,
 
         return Entry(desc = desc, category = this).apply {
             accounts.forEach { add(it.key, it.value) }
+            this@Category.summarizeResult()
         }
     }
 
-    fun toDataMap(): Map<Long, Double> {
-        return entries
+    fun toDataMap(includeCollectionAccount: Boolean = false): Map<Long, Double> {
+        val v = entries
                 .map { it.toDataMap() }
-                .fold(mapOf()) { acc, map ->
+            .fold(mapOf<Long, Double>()) { acc, map ->
                     acc.mergeReduce(map) { a, b -> a + b }
                 }
+
+        if (includeCollectionAccount) {
+            return (reporting.nullify().update(v) as CollectionAccount).cacheAllList
+                .map { it.id to it.decimalValue }
+                .filter { it.second != 0.0 }
+                .toMap()
+        }
+        return v
     }
 
     fun deepCopy(reporting: Reporting, keepID: Boolean = true, resultTransfer: Boolean = true): Category {

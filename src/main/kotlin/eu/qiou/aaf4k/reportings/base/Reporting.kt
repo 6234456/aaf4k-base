@@ -72,8 +72,13 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
         return categories.map { it.id to it.toUncompressedDataMap() }.toMap()
     }
 
-    fun toDataMap(): Map<Long, Double> {
-        return generate().sortedList().map { it.id to it.decimalValue }.toMap()
+    fun toDataMap(includeCollectionAccount: Boolean = false): Map<Long, Double> {
+        return (
+                if (includeCollectionAccount)
+                    generate().sortedAllList()
+                else
+                    generate().sortedList()
+                ).map { it.id to it.decimalValue }.toMap()
     }
 
     fun checkDuplicate(): Map<Long, Int> {
@@ -129,6 +134,7 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
         return binarySearch(id, true)
     }
 
+    // generate a new instance
     override fun nullify(): ProtoAccount {
         return Reporting(core.nullify() as ProtoCollectionAccount)
     }

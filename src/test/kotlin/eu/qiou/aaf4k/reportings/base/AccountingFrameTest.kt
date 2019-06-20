@@ -27,16 +27,18 @@ class AccountingFrameTest {
         }
         assertEquals(a, reporting.categoryPayablesReceivabelsCons!!.nextEntryIndex)
 
+        // autoSummary
         reporting.categoryPayablesReceivabelsCons!!.add(
             mapOf(
                 3100L to 100.0,
                 6400L to -100.0
             ), "偿还短期借款"
         )
-
-        reporting.categoryPayablesReceivabelsCons!!.summarizeResult()
+        //bubble up to the top most account
+        assertEquals(true, reporting.categoryPayablesReceivabelsCons!!.toDataMap(true)[2L] == -100.0)
 
         assertEquals(true, reporting.generate().findAccountByID(5600)!!.decimalValue == -100.0)
+
 
     }
 }
