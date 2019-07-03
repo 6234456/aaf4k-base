@@ -21,8 +21,7 @@ object GlobalConfiguration {
     val DEFAULT_DECIMAL_PRECISION: Int = 2
     val DEFAULT_FX_DECIMAL_PRECISION: Int = 4
 
-
-    val DEFAULT_LOCALE: Locale = Locale.CHINA
+    var DEFAULT_LOCALE: Locale = Locale.CHINA
     val DEFAULT_FUNCTIONAL_CURRENCY: Currency = Currency.getInstance("EUR")
     val DEFAULT_CURRENCY_CODE: String = DEFAULT_FUNCTIONAL_CURRENCY.currencyCode
     val DEFAULT_CURRENCY_UNIT: CurrencyUnit = CurrencyUnit(scalar = UnitScalar.UNIT, currency = DEFAULT_FUNCTIONAL_CURRENCY)

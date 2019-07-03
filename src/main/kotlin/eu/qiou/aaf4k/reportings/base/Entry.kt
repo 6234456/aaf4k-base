@@ -1,11 +1,14 @@
 package eu.qiou.aaf4k.reportings.base
 
+import eu.qiou.aaf4k.util.i18n.Message
 import eu.qiou.aaf4k.util.io.JSONable
 import eu.qiou.aaf4k.util.mkString
 import eu.qiou.aaf4k.util.strings.CollectionToString
 import java.time.LocalDate
+import java.util.*
 
-class Entry(val desc: String = "", val category: Category,
+class Entry(
+    desc: String = "", val category: Category,
             val date: LocalDate = category.reporting.timeParameters.end,
             var isActive: Boolean = true,
             var isVisible: Boolean = true,
@@ -14,6 +17,14 @@ class Entry(val desc: String = "", val category: Category,
     companion object {
         private const val UNINITIALIZED_ID = -1
     }
+
+    val desc = desc
+        get(): String {
+            return when (id) {
+                Category.RESULT_TRANSFER_ENTRY_ID -> Message(Locale.getDefault()).of("transferResult")
+                else -> field
+            }
+        }
 
     // can only be set once or be reset
     var id: Int = UNINITIALIZED_ID
