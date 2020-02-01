@@ -55,11 +55,7 @@ interface ProtoAccount : JSONable, Identifiable {
                     acc + if (e.isStatistical) 0.0 else e.decimalValue
                 }
             else {
-                val tmp = value.toDouble() / Math.pow(10.0, decimalPrecision.toDouble())
-                when (unit) {
-                    is CurrencyUnit -> (unit as CurrencyUnit).convertFxTo(GlobalConfiguration.DEFAULT_CURRENCY_UNIT, timeParameters)(tmp)
-                    else -> tmp
-                }.roundUpTo(decimalPrecision)
+                value.toDouble() / Math.pow(10.0, decimalPrecision.toDouble()).roundUpTo(decimalPrecision)
             }
         }
 

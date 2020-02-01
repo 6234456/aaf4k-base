@@ -31,7 +31,12 @@ object ECBFxProvider : FxProvider() {
             val v1 = hashMapOf<Int, Double>()
 
             JSONUtil.fetch<JSONObject>(url, false, "dataSets.0.series.0:0:0:0:0.observations").forEach { k, x ->
-                v1[k.toString().toInt()] = (x as JSONArray)[0] as Double
+                // in case of JPY to EUR, type of FX is Long
+                v1[k.toString().toInt()] = try {
+                    (x as JSONArray)[0] as Double
+                } catch (e: ClassCastException) {
+                    (x as JSONArray)[0] as Long * 1.0
+                }
             }
 
             return JSONUtil.fetch<JSONArray>(url, false, "structure.dimensions.observation.0.values").map { v ->

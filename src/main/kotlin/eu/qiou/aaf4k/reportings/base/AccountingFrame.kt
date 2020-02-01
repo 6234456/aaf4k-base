@@ -10,16 +10,18 @@ import java.io.InputStream
 import java.io.InputStreamReader
 import java.time.LocalDate
 
-class AccountingFrame(override val id: Long, override val name: String, override val desc: String = "", val structure: List<ProtoAccount>): ProtoCollectionAccount {
-    override val subAccounts: MutableList<ProtoAccount> = mutableListOf()
-    override val decimalPrecision: Int = GlobalConfiguration.DEFAULT_DECIMAL_PRECISION
-    override val unit: CurrencyUnit = CurrencyUnit()
-    override val superAccounts: MutableList<ProtoCollectionAccount> = mutableListOf()
+class AccountingFrame(
+    override val id: Long, override val name: String, override val desc: String = "", val structure: List<ProtoAccount>,
+    override val decimalPrecision: Int = GlobalConfiguration.DEFAULT_DECIMAL_PRECISION,
+    override val displayUnit: ProtoUnit = CurrencyUnit(),
+    override val unit: CurrencyUnit = CurrencyUnit(),
     override val timeParameters: TimeParameters? = null
+) : ProtoCollectionAccount {
+    override val subAccounts: MutableList<ProtoAccount> = mutableListOf()
+    override val superAccounts: MutableList<ProtoCollectionAccount> = mutableListOf()
     override val entity: Entity? = null
     override val isStatistical: Boolean = false
     override val validateUntil: LocalDate? = null
-    override val displayUnit: ProtoUnit = CurrencyUnit()
 
     override fun deepCopy(): ProtoAccount {
         throw Exception("AccountingFrame can not be copied.")
@@ -32,19 +34,25 @@ class AccountingFrame(override val id: Long, override val name: String, override
 
 
     fun toReporting(id: Long = this.id, name: String = this.name,
-                    timeParameters: TimeParameters = GlobalConfiguration.DEFAULT_TIME_PARAMETERS,
                     desc: String = "",
-                    displayUnit: CurrencyUnit = CurrencyUnit(),
                     entity: Entity = GlobalConfiguration.DEFAULT_REPORTING_ENTITY): Reporting {
-        return Reporting(CollectionAccount(id, name, timeParameters = timeParameters,
-                desc = desc, displayUnit = displayUnit, entity = entity).apply {
-                    addAll(structure)
-                })
+        return Reporting(CollectionAccount(
+            id, name, timeParameters = timeParameters, unit = unit,
+            desc = desc, displayUnit = displayUnit, entity = entity, decimalPrecision = decimalPrecision
+        ).apply {
+            addAll(structure)
+        })
     }
 
     companion object {
 
-        fun inflate(id: Long, frame: String, inputStream: InputStream): AccountingFrame {
+        fun inflate(
+            id: Long, frame: String, inputStream: InputStream,
+            decimalPrecision: Int = GlobalConfiguration.DEFAULT_DECIMAL_PRECISION,
+            timeParameters: TimeParameters = GlobalConfiguration.DEFAULT_TIME_PARAMETERS,
+            unit: CurrencyUnit = CurrencyUnit(),
+            displayUnit: CurrencyUnit = CurrencyUnit()
+        ): AccountingFrame {
 
             val lines = BufferedReader(InputStreamReader(inputStream)).readLines().filter { !it.isBlank() }
 
@@ -160,11 +168,15 @@ class AccountingFrame(override val id: Long, override val name: String, override
                     val arr = s.split("#")
                     val name = arr[1]
                     regIndent.find(s)?.groups!!.let {
-                        return Account(it[3]!!.value.toLong(),
-                                name, decimalPrecision = 2, value = 0,
-                                isStatistical = it[2]!!.value.length == 1,
-                                reportingType = if (types(arr) == null) t!!
-                                else types(arr)!!
+                        return Account(
+                            it[3]!!.value.toLong(),
+                            name, decimalPrecision = decimalPrecision, value = 0,
+                            unit = unit,
+                            displayUnit = displayUnit,
+                            timeParameters = timeParameters,
+                            isStatistical = it[2]!!.value.length == 1,
+                            reportingType = if (types(arr) == null) t!!
+                            else types(arr)!!
                         )
                     }
                 }
@@ -173,9 +185,12 @@ class AccountingFrame(override val id: Long, override val name: String, override
                     val arr = src.split("#")
                     val name = arr[1]
                     regIndent.find(src)?.groups!!.let {
-                        return CollectionAccount(it[3]!!.value.toLong(), name, decimalPrecision = 2,
-                                isStatistical = it[2]!!.value.length == 1,
-                                reportingType = if (types(arr) == null) t!! else types(arr)!!
+                        return CollectionAccount(
+                            it[3]!!.value.toLong(), name, decimalPrecision = decimalPrecision,
+                            unit = unit,
+                            displayUnit = displayUnit,
+                            isStatistical = it[2]!!.value.length == 1,
+                            reportingType = if (types(arr) == null) t!! else types(arr)!!
                         ).apply {
                             addAll(acc)
                         }
@@ -188,14 +203,21 @@ class AccountingFrame(override val id: Long, override val name: String, override
                         else -> directChildren(i).fold(listOf()) { acc, index ->
                             if (!notHasChild(index))
                                 acc + this[index].dropLast(1).map { parse(it, getParentType(index)) } +
-                                        parseSuperAccount(this[index].last(), scopeToAccount(index + 1), getParentType(index + 1))
+                                        parseSuperAccount(
+                                            this[index].last(),
+                                            scopeToAccount(index + 1),
+                                            getParentType(index + 1)
+                                        )
                             else
                                 acc + this[index].map { parse(it, getParentType(index)) }
                         }
                     }
                 }
 
-                return AccountingFrame(id, frame, structure = scopeToAccount(0))
+                return AccountingFrame(
+                    id, frame, structure = scopeToAccount(0), unit = unit,
+                    displayUnit = displayUnit, decimalPrecision = decimalPrecision, timeParameters = timeParameters
+                )
             }
         }
     }

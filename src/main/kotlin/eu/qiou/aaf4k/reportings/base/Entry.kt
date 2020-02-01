@@ -71,9 +71,10 @@ class Entry(
         this.category.entries.remove(this)
     }
 
+    // change to displayValue in case of the fx
     private fun residual(): Double {
         return accounts.fold(0.0) { acc, e ->
-            acc + if (e.isStatistical) 0.0 else e.decimalValue
+            acc + if (e.isStatistical) 0.0 else e.displayValue
         }
     }
 
@@ -96,8 +97,9 @@ class Entry(
         return this
     }
 
+    // unify the displayUnit of the entry accounts to the displayUnit of the reporting
     fun add(account: Account): Entry {
-        accounts.add(account)
+        accounts.add(account.copy(displayUnit = category.reporting.displayUnit))
 
         return this
     }

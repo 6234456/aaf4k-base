@@ -61,7 +61,7 @@ data class CurrencyUnit(override val scalar: UnitScalar = UnitScalar.UNIT, val c
     }
 
     private fun getSymbol(): String {
-        return "${scalar.token}$currencyCode"
+        return if (scalar.scalar == 1.0) currencyCode else "${scalar.token} $currencyCode"
     }
 
 }
