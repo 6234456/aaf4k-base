@@ -1,5 +1,7 @@
 package eu.qiou.aaf4k.reportings.base
 
+import jdk.jfr.Percentage
+
 /**
  *  top-down
  */
@@ -8,7 +10,7 @@ interface ProtoCollectionAccount : ProtoAccount, Drilldownable<ProtoCollectionAc
 
     override var value: Long
         get() = if (subAccounts.isEmpty()) 0L else subAccounts.map { if (it.isStatistical) 0 else it.value }
-                .reduce { acc, l -> acc + l }
+            .reduce { acc, l -> acc + l }
         set(value) {
             throw Exception("set $value to the CollectionAccount $name is not forbidden.")
         }
@@ -17,7 +19,7 @@ interface ProtoCollectionAccount : ProtoAccount, Drilldownable<ProtoCollectionAc
 
     override fun getParents(): Collection<ProtoCollectionAccount>? = superAccounts
 
-    override fun add(child: ProtoAccount, index: Int?): ProtoCollectionAccount {
+    override fun add(child: ProtoAccount, index: Int?, percentage: Double): ProtoCollectionAccount {
         //do nothing if child already exists and this account is not statistical account
         if (!isStatistical && child in this)
             return this
@@ -28,7 +30,7 @@ interface ProtoCollectionAccount : ProtoAccount, Drilldownable<ProtoCollectionAc
             subAccounts.add(index, child)
 
         child.superAccounts.add(this)
-        return super.add(child, index)
+        return super.add(child, index, 1.0)
     }
 
     override fun remove(child: ProtoAccount): ProtoCollectionAccount {

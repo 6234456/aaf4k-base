@@ -3,6 +3,7 @@ package eu.qiou.aaf4k.reportings.base
 import eu.qiou.aaf4k.util.io.JSONable
 import eu.qiou.aaf4k.util.mkJSON
 import eu.qiou.aaf4k.util.strings.CollectionToString
+import jdk.jfr.Percentage
 
 /**
  *  the reporting Entity
@@ -35,10 +36,9 @@ data class Entity(override val id: Long, var name: String, var abbreviation: Str
     override var cacheList: List<Entity> = listOf()
     override var cacheAllList: List<Entity> = listOf()
 
-    // 100% to 10000   18.23% to 1823
-    override fun add(child: Entity, index: Int?): Entity {
-        childEntities.put(child, if (index == null) 1.0 else index / 10000.0)
-        child.parentEntities.put(this, if (index == null) 1.0 else index / 10000.0)
+    override fun add(child: Entity, index: Int?, percentage: Double): Entity {
+        childEntities.put(child, percentage)
+        child.parentEntities.put(this, percentage)
 
         return this
     }
@@ -120,7 +120,7 @@ data class Entity(override val id: Long, var name: String, var abbreviation: Str
         return CollectionToString.structuredToStr(this, 0, Entity::lower as Entity.(Int) -> String, Entity::upper as Entity.() -> String,
                 trappings = { parent, child ->
                     (parent as Entity)
-                    String.format("%3.2f", parent.childEntities.get(child)!! * 100) + "% "
+                    String.format("%3.2f", parent.childEntities[child]!! * 100) + "% "
                 }
         )
     }

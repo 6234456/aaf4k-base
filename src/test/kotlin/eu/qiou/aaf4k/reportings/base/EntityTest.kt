@@ -8,5 +8,8 @@ class EntityTest {
 
     @Test
     fun toJSON() {
+        mu.add(Entity(2, "Trail GmbH", "GmbH", ""), percentage = 0.021)
+        mu.add(Entity(3, "Trail1 GmbH", "GmbH", ""), percentage = 0.21)
+        print(mu)
     }
 }

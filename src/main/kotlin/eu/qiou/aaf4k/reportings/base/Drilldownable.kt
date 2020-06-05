@@ -1,5 +1,7 @@
 package eu.qiou.aaf4k.reportings.base
 
+import jdk.jfr.Percentage
+
 /**
  *  typed interface Drilldownable
  *
@@ -26,7 +28,7 @@ interface Drilldownable<P, C> : Iterable<C> where P : C, C : Identifiable {
     var toUpdate: Boolean
 
     @Suppress("UNCHECKED_CAST")
-    fun add(child: C, index: Int? = null): P {
+    fun add(child: C, index: Int? = null, percentage: Double = 1.0): P {
         toUpdate = true
         return this as P
     }
