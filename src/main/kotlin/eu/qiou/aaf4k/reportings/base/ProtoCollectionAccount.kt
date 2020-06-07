@@ -1,7 +1,5 @@
 package eu.qiou.aaf4k.reportings.base
 
-import jdk.jfr.Percentage
-
 /**
  *  top-down
  */

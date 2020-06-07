@@ -1,6 +1,5 @@
 package eu.qiou.aaf4k.reportings.base
 
-import eu.qiou.aaf4k.reportings.GlobalConfiguration
 import eu.qiou.aaf4k.util.io.JSONable
 import eu.qiou.aaf4k.util.roundUpTo
 import eu.qiou.aaf4k.util.strings.CollectionToString

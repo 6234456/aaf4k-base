@@ -3,7 +3,6 @@ package eu.qiou.aaf4k.reportings.base
 import eu.qiou.aaf4k.util.io.JSONable
 import eu.qiou.aaf4k.util.mkJSON
 import eu.qiou.aaf4k.util.strings.CollectionToString
-import jdk.jfr.Percentage
 
 /**
  *  the reporting Entity
