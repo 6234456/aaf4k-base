@@ -76,6 +76,26 @@ interface ProtoCollectionAccount : ProtoAccount, Drilldownable<ProtoCollectionAc
         removeRecursively(search(target)!!)
     }
 
+    /**
+     * map all the accounts in place
+     */
+    fun map(mutator: (ProtoAccount) -> ProtoAccount): ProtoCollectionAccount {
+        subAccounts.filterMapInPlace({ _, _ -> true }) {
+            when (it) {
+                is Account -> mutator(it)
+                is CollectionAccount -> {
+                    // val tmp = it
+                    (mutator(it) as CollectionAccount).addAll(it.map(mutator).subAccounts)
+                }
+                else -> throw Error("unknown type ${it::class.qualifiedName}")
+            }
+        }
+
+        this.toUpdate = true
+
+        return this
+    }
+
     override fun copyWith(value: Double, decimalPrecision: Int): ProtoAccount {
         throw Exception("Applicable only to the atomic accounts.")
     }
