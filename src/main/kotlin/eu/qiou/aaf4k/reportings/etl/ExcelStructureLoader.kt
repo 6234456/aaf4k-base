@@ -27,7 +27,7 @@ class ExcelStructureLoader(val path: String, val sheetIndex: Int = 0, val sheetN
             }
 
             it.getCell(secondaryKeyCol - 1)?.stringCellValue?.trim()?.let {
-                if (!it.isEmpty()) {
+                if (it.isNotEmpty()) {
                     val t1 = parseAccount(it)
                     tmpAggregateAccount?.add(Account(id = t1.first, name = t1.second, value = 0L))
                 }

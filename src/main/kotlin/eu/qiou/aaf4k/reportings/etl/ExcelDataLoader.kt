@@ -4,6 +4,8 @@ import eu.qiou.aaf4k.util.io.ExcelUtil
 import org.apache.poi.ss.usermodel.Row
 
 class ExcelDataLoader(var path:String, var sheetIndex: Int = 0, var sheetName: String? = null, var keyCol:Int = 1, var valCol:Int = 2, var hasHeading:Boolean = false): DataLoader {
+    private val reg2 = Regex("""\s+""")
+
     override fun load(): MutableMap<Long, Double> {
         val res: MutableMap<Long, Double> = mutableMapOf()
         val f:(Row) -> Unit = {
@@ -12,8 +14,12 @@ class ExcelDataLoader(var path:String, var sheetIndex: Int = 0, var sheetName: S
                 val valueCol = valCol - 1
 
                 if (it.getCell(idCol) != null && it.getCell(valueCol) != null && it.getCell(idCol).stringCellValue.isNotBlank()){
-                    val c1 = it.getCell(idCol).numericCellValue.toLong()
-                    val c2 = it.getCell(valueCol).numericCellValue
+                    val c1 = reg2.split(it.getCell(idCol).stringCellValue, 2)[0].toLong()
+                    val c2 = try {
+                        it.getCell(valueCol).numericCellValue
+                    } catch (e: Exception) {
+                        0.0
+                    }
 
                     res[c1] = c2
                 }

@@ -44,6 +44,20 @@ data class CollectionAccount(override val id: Long, override val name: String,
         }
     }
 
+    fun copyWith(reportingType: ReportingType): CollectionAccount {
+        return copy(reportingType = reportingType).apply {
+            subAccounts.clear()
+            superAccounts.clear()
+            this@CollectionAccount.subAccounts.forEach {
+                this + when (it) {
+                    is CollectionAccount -> it.copyWith(reportingType)
+                    is Account -> it.copy(reportingType = reportingType)
+                    else -> throw Exception("unknown type")
+                }
+            }
+        }
+    }
+
     override var toUpdate = false
 
     override var cacheList: List<ProtoAccount> = listOf()

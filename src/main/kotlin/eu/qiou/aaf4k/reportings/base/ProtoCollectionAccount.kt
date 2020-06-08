@@ -49,7 +49,16 @@ interface ProtoCollectionAccount : ProtoAccount, Drilldownable<ProtoCollectionAc
         target.superAccounts.filterMapInPlace({ _, _ -> true }) {
 
             it.subAccounts.filterMapInPlace({ o, _ -> o.id == target.id }) {
-                newAccount
+                if (newAccount.reportingType == ReportingType.AUTO) {
+                    if (newAccount is Account) {
+                        newAccount.copy(reportingType = it.reportingType)
+                    } else {
+                        newAccount as CollectionAccount
+                        newAccount.copyWith(it.reportingType)
+                    }
+                } else {
+                    newAccount
+                }
             }
 
             it
