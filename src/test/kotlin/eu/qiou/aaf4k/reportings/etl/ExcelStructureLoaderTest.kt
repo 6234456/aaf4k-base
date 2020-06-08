@@ -4,6 +4,7 @@ import eu.qiou.aaf4k.reportings.base.Account
 import eu.qiou.aaf4k.reportings.base.AccountingFrame
 import eu.qiou.aaf4k.reportings.base.CollectionAccount
 import eu.qiou.aaf4k.reportings.base.Reporting
+import eu.qiou.aaf4k.util.template.Template
 import eu.qiou.aaf4k.util.time.TimeParameters
 import eu.qiou.aaf4k.util.unit.CurrencyUnit
 import org.junit.Test
@@ -12,6 +13,7 @@ class ExcelStructureLoaderTest {
 
     val loader = ExcelStructureLoader("Mapping.xlsx")
     val dataLoader = ExcelDataLoader("Mapping.xlsx", keyCol = 2, valCol = 3)
+    val dataLoader2 = ExcelDataLoader("Mapping.xlsx", keyCol = 2, valCol = 4)
     val reporting2 = AccountingFrame
         .inflate(
             10004L, "SKR4",
@@ -33,13 +35,34 @@ class ExcelStructureLoaderTest {
             }
         }
 
-
-        val report1 = loader.load().forEach { account ->
+        loader.load().forEach { account ->
             reporting2.replace(account)
         }
+
+
+        val report1 = reporting2
+        val report2 = reporting2
+
+        val d1 = dataLoader.load()
+        val d2 = dataLoader2.load()
+
+        val l = d1.keys + d2.keys
+
+
         //  println(reporting2)
 
-        Reporting(reporting2.update(dataLoader.load()).shorten() as CollectionAccount).toXl("trail.xlsx")
+        Reporting(report1.update(d1).shorten(whiteList = l) as CollectionAccount).toXl(
+            "trail.xlsx",
+            Template.Theme.BLACK_WHITE,
+            shtNameOverview = "2019",
+            shtNameAdjustment = "adj2019"
+        )
+        Reporting(report1.update(d1).shorten(whiteList = l) as CollectionAccount).toXl(
+            "trail.xlsx",
+            Template.Theme.BLACK_WHITE,
+            shtNameOverview = "2018",
+            shtNameAdjustment = "adj2018"
+        )
 
     }
 
