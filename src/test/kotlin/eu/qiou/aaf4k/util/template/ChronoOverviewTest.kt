@@ -1,7 +1,5 @@
 package eu.qiou.aaf4k.util.template
 
-import eu.qiou.aaf4k.util.time.TimeSpan
-import org.junit.Assert.*
 import org.junit.Test
 
 class ChronoOverviewTest {
@@ -38,6 +36,6 @@ class ChronoOverviewTest {
                     }
                 }
             }
-        }.generate(root = "/home/yang/Documents")
+        }.generate(root = "")
     }
 }

@@ -2,8 +2,6 @@ package eu.qiou.aaf4k.util.template
 
 import org.junit.Test
 
-import org.junit.Assert.*
-
 class TemplateTest {
 
     @Test
@@ -15,6 +13,6 @@ class TemplateTest {
                 mapOf("trail" to 121, "trail1" to 12)
             ), headings = listOf(Template.HeadingFormat("trail"), Template.HeadingFormat("trail1"))
         )
-            .build("/home/yang/Documents/data.xls", sheetName = "1213", top = 10, left = 3)
+            .build("data.xls", sheetName = "1213", top = 10, left = 3)
     }
 }
