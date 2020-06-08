@@ -3,8 +3,6 @@ package eu.qiou.aaf4k.reportings.base
 import eu.qiou.aaf4k.util.time.TimeParameters
 import eu.qiou.aaf4k.util.unit.CurrencyUnit
 import org.junit.Test
-
-import org.junit.Assert.*
 import java.util.*
 
 class EntryTest {
@@ -41,9 +39,19 @@ class EntryTest {
 
         entry.unregister()
 
-        println(category.toJSON())
+        //    println(category.toJSON())
 
         println(reporting.categories.map { it.name })
+
+
+        reporting.replace(111L, CollectionAccount(111L, "replaced").apply {
+            add(Account(11112L, "trails", 1231L))
+            add(Account(11113L, "trails2", 1231L))
+        })
+
+        println(reporting.findAccountByID(111L))
+
+
 
     }
 }

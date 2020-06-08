@@ -64,4 +64,25 @@ class CollectionAccountTest {
 
         println((collectionAccount.nullify().update(mapOf(12341L to 20000.0)) as CollectionAccount).shorten())
     }
+
+    @Test
+    fun removeAccount() {
+        val superAccount = CollectionAccount(123L, "s1")
+        val sub1 = Account(1230L, "trial", 12121)
+        val sub2 = Account(1231L, "trial", 12121)
+        superAccount.add(CollectionAccount(0L, "demo").apply {
+            add(sub1)
+            add(sub2)
+        })
+
+        println(superAccount)
+
+        superAccount.replace(
+            1231L,
+            Account(1245L, "replace", 0L)
+        )
+
+        println(superAccount)
+
+    }
 }

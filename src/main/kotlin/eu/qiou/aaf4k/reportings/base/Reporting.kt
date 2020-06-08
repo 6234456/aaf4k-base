@@ -140,11 +140,6 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
     }
 
 
-    fun removeAccount(accountId: Long) {
-        val p = findAccountByID(accountId) ?: throw java.lang.Exception("No account found for the id: $accountId.")
-        p.superAccounts.forEach { it.remove(p) }
-    }
-
     fun addAccountTo(newAccount: ProtoAccount, index: Int, parentId: Long? = null) {
         if (parentId == null)
             add(newAccount)

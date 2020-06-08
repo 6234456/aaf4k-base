@@ -1,5 +1,7 @@
 package eu.qiou.aaf4k.reportings.base
 
+import eu.qiou.aaf4k.util.filterMapInPlace
+
 /**
  *  top-down
  */
@@ -38,6 +40,40 @@ interface ProtoCollectionAccount : ProtoAccount, Drilldownable<ProtoCollectionAc
             super.remove(child)
         }
         return this
+    }
+
+    /**
+     *  recursively replace all the target account
+     */
+    fun replace(target: ProtoAccount, newAccount: ProtoAccount, updateStructure: Boolean = true) {
+        target.superAccounts.filterMapInPlace({ _, _ -> true }) {
+
+            it.subAccounts.filterMapInPlace({ o, _ -> o.id == target.id }) {
+                newAccount
+            }
+
+            it
+        }
+
+        // structure of the CollectionAccount is changed, notified
+        toUpdate = updateStructure
+    }
+
+    fun replace(target: Long, newAccount: ProtoAccount, updateStructure: Boolean = true) {
+        replace(search(target)!!, newAccount, updateStructure)
+    }
+
+    /**
+     * enables the two-stage structure
+     *
+     *
+     */
+    fun replace(newAccount: ProtoAccount, updateStructure: Boolean = true) {
+        replace(search(newAccount.id)!!, newAccount, updateStructure)
+    }
+
+    fun removeRecursively(target: Long) {
+        removeRecursively(search(target)!!)
     }
 
     override fun copyWith(value: Double, decimalPrecision: Int): ProtoAccount {

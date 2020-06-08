@@ -68,6 +68,22 @@ fun <R, T> Iterable<T>.groupNearby(operation: (T) -> R): List<List<T>> {
     }
 }
 
+/**
+ * change the val list inplace
+ * @param check the old and new value
+ *
+ */
+
+inline fun <T> MutableList<T>.filterMapInPlace(check: (T, T) -> Boolean, mutator: (T) -> T) {
+    val iterate = this.listIterator()
+    while (iterate.hasNext()) {
+        val oldValue = iterate.next()
+        val newValue = mutator(oldValue)
+        if (check(oldValue, newValue)) {
+            iterate.set(newValue)
+        }
+    }
+}
 
 fun <R> Iterable<R>.reduceTrackList(operation: (R, R, Int) -> R): List<R> = this.foldTrackList(this.elementAt(0), operation)
 
