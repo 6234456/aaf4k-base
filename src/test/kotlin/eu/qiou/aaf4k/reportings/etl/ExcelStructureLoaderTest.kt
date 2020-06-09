@@ -8,6 +8,7 @@ import eu.qiou.aaf4k.util.template.Template
 import eu.qiou.aaf4k.util.time.TimeParameters
 import eu.qiou.aaf4k.util.unit.CurrencyUnit
 import org.junit.Test
+import java.util.*
 
 class ExcelStructureLoaderTest {
 
@@ -43,6 +44,26 @@ class ExcelStructureLoaderTest {
                 TimeParameters.forYear(2019) to dataLoader.load(),
                 TimeParameters.forYear(2018) to dataLoader2.load()
             ), "trail2.xlsx", shtNameOverview = "overview"
+        )
+    }
+
+    @Test
+    fun trail1() {
+        reporting2.map {
+            when (it) {
+                is Account -> it.copy(id = it.id + 10000)
+                is CollectionAccount -> it.copy(id = it.id + 10000)
+                else -> throw Exception("")
+            }
+        }
+
+        loader.load().forEach { account ->
+            reporting2.replace(account)
+        }
+
+        Reporting(reporting2.update(dataLoader.load()) as CollectionAccount).toXl(
+            "trail1.xlsx",
+            locale = Locale.GERMANY
         )
     }
 

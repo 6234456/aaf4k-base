@@ -325,16 +325,23 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
                         colOriginal.until(colLast).forEach {
                             // with components and current column is not the sum column
                             // without components
-                            if (colSumOriginal == null || colSumOriginal != it) {
-                                createCell(it).cellFormula =
-                                    "SUM(${CellUtil.getCell(CellUtil.getRow(this.rowNum + 1, sht), it).address}:" +
-                                            "${CellUtil.getCell(CellUtil.getRow(this.rowNum + l - 1, sht), it).address}" +
-                                            ")"
+                            if (chronoData != null && it == chronoData.size + colOriginal) {
+
                             } else {
-                                // with components
-                                // sum up the range from column of the value before adj to previous column
-                                createCell(it).cellFormula = "SUM(${getCell(colOriginal).address}:${(getCell(it - 1)
-                                    ?: createCell(it - 1)).address})"
+                                if (colSumOriginal == null || colSumOriginal != it) {
+                                    createCell(it).cellFormula =
+                                        "SUM(${CellUtil.getCell(CellUtil.getRow(this.rowNum + 1, sht), it).address}:" +
+                                                "${CellUtil.getCell(
+                                                    CellUtil.getRow(this.rowNum + l - 1, sht),
+                                                    it
+                                                ).address}" +
+                                                ")"
+                                } else {
+                                    // with components
+                                    // sum up the range from column of the value before adj to previous column
+                                    createCell(it).cellFormula = "SUM(${getCell(colOriginal).address}:${(getCell(it - 1)
+                                        ?: createCell(it - 1)).address})"
+                                }
                             }
                         }
                     } else {
@@ -346,13 +353,17 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
                         }.dropLast(1).zip(account.subAccounts.map { !it.isStatistical })
 
                         colOriginal.until(colLast).forEach { x ->
-                            if (colSumOriginal == null || colSumOriginal != x) {
-                                createCell(x).cellFormula = tmp.filter { it.second }.map {
-                                    CellUtil.getCell(CellUtil.getRow(this.rowNum + 1 + it.first, sht), x).address
-                                }.mkString("+", prefix = "", affix = "")
+                            if (chronoData != null && x == chronoData.size + colOriginal) {
+
                             } else {
-                                createCell(x).cellFormula = "SUM(${getCell(colOriginal).address}:${(getCell(x - 1)
+                                if (colSumOriginal == null || colSumOriginal != x) {
+                                    createCell(x).cellFormula = tmp.filter { it.second }.map {
+                                        CellUtil.getCell(CellUtil.getRow(this.rowNum + 1 + it.first, sht), x).address
+                                    }.mkString("+", prefix = "", affix = "")
+                                } else {
+                                    createCell(x).cellFormula = "SUM(${getCell(colOriginal).address}:${(getCell(x - 1)
                                         ?: createCell(x - 1)).address})"
+                                }
                             }
                         }
                     }
@@ -369,12 +380,15 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
                     }
                 }
 
-                if (components != null || chronoData != null) {
-                    createCell(colCategoryBegin - 1).cellFormula = "SUM(${(getCell(colCategoryBegin - 2)
+                when {
+                    components != null -> createCell(colCategoryBegin - 1).cellFormula =
+                        "SUM(${(getCell(colCategoryBegin - 2)
                             ?: createCell(colCategoryBegin - 2)).address}:${(getCell(colOriginal)
                             ?: createCell(colOriginal)).address})"
-                } else {
-                    createCell(colLast).cellFormula = "SUM(${
+                    chronoData != null -> {
+
+                    }
+                    else -> createCell(colLast).cellFormula = "SUM(${
                     (getCell(colSumOriginal ?: colOriginal) ?: createCell(
                         colSumOriginal
                             ?: colOriginal
@@ -383,7 +397,7 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
                 }
 
                 // format the content range
-                colId.until(colLast + 1 + if (chronoData != null) -1 else 0).forEach { i ->
+                colId.until(colLast + 1 + if (chronoData != null) -2 else 0).forEach { i ->
                     val c = getCell(i) ?: createCell(i, CellType.NUMERIC)
 
                     if (rowNum >= 3) {

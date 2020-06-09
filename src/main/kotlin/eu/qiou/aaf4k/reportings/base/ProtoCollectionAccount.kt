@@ -53,7 +53,7 @@ interface ProtoCollectionAccount : ProtoAccount, Drilldownable<ProtoCollectionAc
                         newAccount.copy(reportingType = it.reportingType)
                     } else {
                         newAccount as CollectionAccount
-                        newAccount.copyWith(it.reportingType)
+                        newAccount.copyWith(reportingType = it.reportingType)
                     }
                 } else {
                     newAccount
