@@ -25,6 +25,17 @@ class ExcelStructureLoaderTest {
         .toReporting()
 
     @Test
+    fun trial() {
+        val extendedList: Set<Long> = listOf(1000L, 7505L, 1200L, 6400L).fold(setOf()) { acc, l ->
+            acc + (reporting2.search(l)?.let {
+                it.allParentAccounts().map { it.id }
+            } ?: setOf())
+        }
+
+        println(extendedList)
+    }
+
+    @Test
     fun load() {
 
         reporting2.map {
@@ -64,12 +75,44 @@ class ExcelStructureLoaderTest {
             shtNameAdjustment = "adj2018"
         )
 
+        reporting2.chronoToXl(
+            mutableMapOf(
+                TimeParameters.forYear(2019) to mapOf(996L to 2.34),
+                TimeParameters.forYear(2018) to mapOf(996L to 2.34)
+            ), "trail1.xlsx", shtNameOverview = "overview"
+        )
+
     }
 
     @Test
     fun getPath() {
-        for (i in 1.until(3)) {
-            println(i)
+        println((reporting2.map {
+            when (it) {
+                is Account -> it.copy(id = it.id + 10000)
+                is CollectionAccount -> it.copy(id = it.id + 10000)
+                else -> throw Exception("")
+            }
+        }.search(11100)!!).allParentAccounts().map { "${it.id} ${it.name}" })
+
+        loader.load().forEach { account ->
+            reporting2.replace(account)
         }
+
+        println(reporting2.shorten(listOf(11000L, 17505L, 11200L, 16400L)))
+
+        val extendedList: Set<Long> = listOf(11000L, 17505L, 11200L, 16400L).fold(setOf()) { acc, l ->
+            acc + (reporting2.search(l)?.let {
+                it.allParentAccounts().map { it.id }
+            } ?: setOf())
+        }
+
+        println(extendedList)
+
+        reporting2.chronoToXl(
+            mutableMapOf(
+                TimeParameters.forYear(2019) to mapOf(996L to 2.34),
+                TimeParameters.forYear(2018) to mapOf(996L to 2.34)
+            ), "trail2.xlsx", shtNameOverview = "overview"
+        )
     }
 }

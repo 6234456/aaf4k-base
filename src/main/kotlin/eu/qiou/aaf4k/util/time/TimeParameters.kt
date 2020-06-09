@@ -16,6 +16,14 @@ data class TimeParameters(val timeSpan: TimeSpan? = null, val timePoint: LocalDa
 
     constructor(year: Int, month: Int, dayOfMonth:Int):this(null, LocalDate.of(year, month, dayOfMonth))
 
+    override fun toString(): String {
+        return when (this.timeAttribute) {
+            TimeAttribute.TIME_POINT -> this.timePoint!!.toString()
+            TimeAttribute.TIME_SPAN -> this.timeSpan!!.end.toString()
+            else -> throw Exception("Specification Error: One and only one of the attribute timeSpan/timePoint should be specified!")
+        }
+    }
+
     val end: LocalDate
     get() {
         return when(this.timeAttribute){

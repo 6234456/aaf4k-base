@@ -68,6 +68,15 @@ interface ProtoAccount : JSONable, Identifiable {
     val textValue: String
         get() = displayUnit.format()(displayValue)
 
+    fun allParentAccounts(): Set<ProtoAccount> {
+        return when (this) {
+            is ProtoCollectionAccount -> this.allParents(true)
+            else -> this.superAccounts.fold(setOf<ProtoAccount>()) { acc, e ->
+                acc + e.allParents(true)
+            } + setOf(this)
+        }
+    }
+
     // symbol for the collection account
     private fun superAccountStr(): String {
         return "[$id $name] ${if (reportingType != ReportingType.AUTO) reportingType.code else ""}"
@@ -133,7 +142,13 @@ interface ProtoAccount : JSONable, Identifiable {
         return if (this is ProtoCollectionAccount) {
             // the collection accounts which have no children or all the children with null-value
             (if (whiteList != null) {
-                sortedList().filter { !whiteList.contains(it.id) }
+                val extendedList: Set<Long> = whiteList.fold(setOf()) { acc, l ->
+                    acc + (search(l)?.let {
+                        it.allParentAccounts().map { it.id }
+                    } ?: setOf())
+                }
+
+                sortedAllList().filter { !extendedList.contains(it.id) }
             } else {
                 blackList?.map { search(it) } ?: sortedAllList().filter { it.isEmpty() }
             }).fold(deepCopy() as ProtoCollectionAccount) { acc, x ->

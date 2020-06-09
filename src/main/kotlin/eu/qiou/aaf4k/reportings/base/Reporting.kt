@@ -1,7 +1,6 @@
 package eu.qiou.aaf4k.reportings.base
 
 import eu.qiou.aaf4k.reportings.GlobalConfiguration
-import eu.qiou.aaf4k.reportings.etl.MultiDataLoader
 import eu.qiou.aaf4k.util.foldTrackListInit
 import eu.qiou.aaf4k.util.i18n.Message
 import eu.qiou.aaf4k.util.io.ExcelUtil
@@ -253,7 +252,7 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
              shtNameOverview: String = "src",
              shtNameAdjustment: String = "adj",
              components: Map<Entity, Reporting>? = null,
-             chronos: MultiDataLoader? = null
+             chronoData: Map<TimeParameters, Map<Long, Double>>? = null
     ): Pair<Sheet, Map<Long, String>> {
 
         // i18n of the titles
@@ -291,9 +290,6 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
         //column position of the original value before adjustment and reclassification
         val colOriginal = colName + 1
 
-        //the data of the same entity for several reporting period
-        val chronoData = chronos?.loadMultiple()
-
         // the position of sum column of all the previous columns of the account
         val colLast = colOriginal + categories.size + 1 + (components?.size ?: 0) + (chronoData?.size ?: 0)
 
@@ -301,7 +297,7 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
         val colSumOriginal = if (components == null) null else colName + 1 + components.size
 
         // the beginning column of the Konsolidierungsmassnahmen
-        var colCategoryBegin = colOriginal + 1 + (components?.size ?: 0)
+        var colCategoryBegin = colOriginal + 1 + (components?.size ?: 0) + (chronoData?.size ?: 0)
 
         val res: MutableMap<Long, String> = mutableMapOf()
 
@@ -315,7 +311,7 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
             // the depth of account,  the indent of cell
             val lvl = if (account is ProtoCollectionAccount) account.levels() else 1
 
-            colCategoryBegin = colOriginal + 1 + (components?.size ?: 0)
+            colCategoryBegin = colOriginal + 1 + (components?.size ?: 0) + (chronoData?.size ?: 0)
 
             //create the content row by row below the table head
             sht.createRow(cnt++).apply {
@@ -362,15 +358,21 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
                     }
                 } else {
                     // set value of the atomic account
-                    createCell(colOriginal).setCellValue(account.displayValue)
+
+                    if (chronoData == null)
+                        createCell(colOriginal).setCellValue(account.displayValue)
+                    else {
+                        var cnt0 = colOriginal
+                        chronoData.forEach { t, u ->
+                            createCell(cnt0++).setCellValue(u[account.id] ?: 0.0)
+                        }
+                    }
                 }
 
-                if (components != null) {
+                if (components != null || chronoData != null) {
                     createCell(colCategoryBegin - 1).cellFormula = "SUM(${(getCell(colCategoryBegin - 2)
                             ?: createCell(colCategoryBegin - 2)).address}:${(getCell(colOriginal)
                             ?: createCell(colOriginal)).address})"
-                } else if (chronoData != null) {
-
                 } else {
                     createCell(colLast).cellFormula = "SUM(${
                     (getCell(colSumOriginal ?: colOriginal) ?: createCell(
@@ -492,83 +494,101 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
             }
 
             //booking
-            cnt = startRow
+            if (chronoData != null) {
 
-            var bookings = listOf<Map<Long, String>>()
-            val colVal = 3
 
-            val bookingCallback: (Sheet) -> Unit = { shtCat ->
-                shtCat.isDisplayGridlines = false
-                shtCat.createRow(0).apply {
-                    createCell(0).setCellValue(categoryID)
-                    createCell(1).setCellValue(titleID)
-                    createCell(2).setCellValue(titleName)
-                    createCell(colVal).setCellValue(amount)
-                    createCell(4).setCellValue(descStr)
-                    createCell(5).setCellValue(categoryName)
+            } else {
 
-                    ExcelUtil.StyleBuilder(w).fromStyle(heading, false).applyTo(
-                        0.until(6).map { i ->
-                            shtCat.setColumnWidth(i, 4000)
-                            getCell(i)
-                        }
-                    )
+                cnt = startRow
+                var bookings = listOf<Map<Long, String>>()
+                val colVal = 3
 
-                    heightInPoints = headingHeight
-                }
+                val bookingCallback: (Sheet) -> Unit = { shtCat ->
+                    shtCat.isDisplayGridlines = false
+                    shtCat.createRow(0).apply {
+                        createCell(0).setCellValue(categoryID)
+                        createCell(1).setCellValue(titleID)
+                        createCell(2).setCellValue(titleName)
+                        createCell(colVal).setCellValue(amount)
+                        createCell(4).setCellValue(descStr)
+                        createCell(5).setCellValue(categoryName)
 
-                val bookingFormat = ExcelUtil.StyleBuilder(w).fromStyle(dark!!, false)
-                    .dataFormat(ExcelUtil.DataFormat.NUMBER.format)
+                        ExcelUtil.StyleBuilder(w).fromStyle(heading, false).applyTo(
+                            0.until(6).map { i ->
+                                shtCat.setColumnWidth(i, 4000)
+                                getCell(i)
+                            }
+                        )
 
-                bookings = this.categories.fold(listOf()) { acc, e ->
-                    val data = mutableMapOf<Long, String>()
-                    e.entries.filter { it.isActive }.forEach {
-                        it.accounts.forEach { acc ->
-                            shtCat.createRow(cnt++).apply {
-                                heightInPoints = rowHeight
+                        heightInPoints = headingHeight
+                    }
 
-                                this.createCell(0).setCellValue(it.category.id.toString())
-                                this.createCell(1).setCellValue(acc.id.toString())
-                                this.createCell(2).setCellValue(acc.name)
-                                this.createCell(colVal).setCellValue(acc.displayValue)
-                                this.createCell(4).setCellValue(it.desc)
-                                this.createCell(5).setCellValue(e.name)
+                    val bookingFormat = ExcelUtil.StyleBuilder(w).fromStyle(dark!!, false)
+                        .dataFormat(ExcelUtil.DataFormat.NUMBER.format)
 
-                                bookingFormat.applyTo(
-                                    0.until(6).map { i ->
-                                        ExcelUtil.Update(this.getCell(i)).alignment(if (i < 2) HorizontalAlignment.RIGHT else null)
-                                        this.getCell(i)
+                    bookings = this.categories.fold(listOf()) { acc, e ->
+                        val data = mutableMapOf<Long, String>()
+                        e.entries.filter { it.isActive }.forEach {
+                            it.accounts.forEach { acc ->
+                                shtCat.createRow(cnt++).apply {
+                                    heightInPoints = rowHeight
+
+                                    this.createCell(0).setCellValue(it.category.id.toString())
+                                    this.createCell(1).setCellValue(acc.id.toString())
+                                    this.createCell(2).setCellValue(acc.name)
+                                    this.createCell(colVal).setCellValue(acc.displayValue)
+                                    this.createCell(4).setCellValue(it.desc)
+                                    this.createCell(5).setCellValue(e.name)
+
+                                    bookingFormat.applyTo(
+                                        0.until(6).map { i ->
+                                            ExcelUtil.Update(this.getCell(i))
+                                                .alignment(if (i < 2) HorizontalAlignment.RIGHT else null)
+                                            this.getCell(i)
+                                        }
+                                    )
+
+                                    if (data.containsKey(acc.id)) {
+                                        data[acc.id] = "${data[acc.id]}+'${shtCat.sheetName}'!${CellUtil.getCell(
+                                            this,
+                                            colVal
+                                        ).address}"
+                                    } else {
+                                        data[acc.id] = "'${shtCat.sheetName}'!${CellUtil.getCell(this, colVal).address}"
                                     }
-                                )
-
-                                if (data.containsKey(acc.id)) {
-                                    data[acc.id] = "${data[acc.id]}+'${shtCat.sheetName}'!${CellUtil.getCell(this, colVal).address}"
-                                } else {
-                                    data[acc.id] = "'${shtCat.sheetName}'!${CellUtil.getCell(this, colVal).address}"
                                 }
                             }
+
+                            shtCat.createRow(cnt++)
                         }
-
-                        shtCat.createRow(cnt++)
+                        acc + listOf(data)
                     }
-                    acc + listOf(data)
                 }
-            }
 
-            bookingCallback(w.createSheet(shtNameAdjustment))
+                bookingCallback(w.createSheet(shtNameAdjustment))
 
-            colCategoryBegin = colOriginal + 1 + (components?.size ?: 0)
-            bookings.forEach { x ->
-                ExcelUtil.unload(x, { if (ExcelUtil.digitRegex.matches(it)) it.toDouble().toLong() else -1 }, 0, colCategoryBegin++, { false }, { c, v ->
-                    c.cellFormula = v
-                }, sht)
-            }
-
-            sht.rowIterator().forEach { x ->
-                if (x.rowNum > 1) {
-                    val c = x.getCell(colLast + if (chronoData != null) -1 else 0)
-                    res[x.getCell(colId).stringCellValue.toLong()] = "'${sht.sheetName}'!${c.address}"
+                colCategoryBegin = colOriginal + 1 + (components?.size ?: 0) + (chronoData?.size ?: 0)
+                bookings.forEach { x ->
+                    ExcelUtil.unload(
+                        x,
+                        { if (ExcelUtil.digitRegex.matches(it)) it.toDouble().toLong() else -1 },
+                        0,
+                        colCategoryBegin++,
+                        { false },
+                        { c, v ->
+                            c.cellFormula = v
+                        },
+                        sht
+                    )
                 }
+
+                sht.rowIterator().forEach { x ->
+                    if (x.rowNum > 1) {
+                        val c = x.getCell(colLast + if (chronoData != null) -1 else 0)
+                        res[x.getCell(colId).stringCellValue.toLong()] = "'${sht.sheetName}'!${c.address}"
+                    }
+                }
+
             }
 
             res1 = sht to res
@@ -576,5 +596,23 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
         })
 
         return res1!!
+    }
+
+    fun chronoToXl(
+        chronos: Map<TimeParameters, Map<Long, Double>>,
+        path: String,
+        t: Template.Theme = Template.Theme.DEFAULT,
+        locale: Locale = GlobalConfiguration.DEFAULT_LOCALE,
+        shtNameOverview: String = "src",
+        toShorten: Boolean = true
+    ) {
+
+        if (toShorten) {
+            Reporting(shorten(whiteList = chronos.values.fold(setOf()) { acc, map ->
+                acc + map.keys
+            }) as ProtoCollectionAccount)
+        } else {
+            this
+        }.toXl(path, t, locale, shtNameOverview, chronoData = chronos)
     }
 }

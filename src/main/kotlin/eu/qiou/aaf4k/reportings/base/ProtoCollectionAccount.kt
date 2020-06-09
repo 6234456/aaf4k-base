@@ -46,9 +46,8 @@ interface ProtoCollectionAccount : ProtoAccount, Drilldownable<ProtoCollectionAc
      *  recursively replace all the target account
      */
     fun replace(target: ProtoAccount, newAccount: ProtoAccount, updateStructure: Boolean = true) {
-        target.superAccounts.filterMapInPlace({ _, _ -> true }) {
-
-            it.subAccounts.filterMapInPlace({ o, _ -> o.id == target.id }) {
+        target.superAccounts.filterMapInPlace({ _, _ -> true }) { sup ->
+            sup.subAccounts.filterMapInPlace({ o, _ -> o.id == target.id }) {
                 if (newAccount.reportingType == ReportingType.AUTO) {
                     if (newAccount is Account) {
                         newAccount.copy(reportingType = it.reportingType)
@@ -58,10 +57,12 @@ interface ProtoCollectionAccount : ProtoAccount, Drilldownable<ProtoCollectionAc
                     }
                 } else {
                     newAccount
+                }.apply {
+                    this.superAccounts.add(sup)
                 }
             }
 
-            it
+            sup
         }
 
         // structure of the CollectionAccount is changed, notified

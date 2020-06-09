@@ -60,6 +60,18 @@ interface Drilldownable<P, C> : Iterable<C> where P : C, C : Identifiable {
     }
 
     @Suppress("UNCHECKED_CAST")
+    fun allParents(containsSelf: Boolean = false): Set<P> {
+        if (hasParent()) {
+            return getParents()!!.fold(setOf<P>()) { acc, p ->
+                acc + (p as Drilldownable<P, C>).allParents()
+            } + if (containsSelf) setOf(this as P) else setOf()
+        } else {
+            return setOf(this as P)
+        }
+    }
+
+
+    @Suppress("UNCHECKED_CAST")
     fun search(id: Long): C? {
         return binarySearch(id, true)
     }
