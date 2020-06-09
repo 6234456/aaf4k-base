@@ -63,7 +63,7 @@ interface Drilldownable<P, C> : Iterable<C> where P : C, C : Identifiable {
     fun allParents(containsSelf: Boolean = false): Set<P> {
         if (hasParent()) {
             return getParents()!!.fold(setOf<P>()) { acc, p ->
-                acc + (p as Drilldownable<P, C>).allParents()
+                acc + (p as Drilldownable<P, C>).allParents(containsSelf = true)
             } + if (containsSelf) setOf(this as P) else setOf()
         } else {
             return setOf(this as P)

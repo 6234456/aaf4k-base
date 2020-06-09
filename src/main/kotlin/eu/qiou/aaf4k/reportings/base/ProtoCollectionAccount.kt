@@ -94,7 +94,6 @@ interface ProtoCollectionAccount : ProtoAccount, Drilldownable<ProtoCollectionAc
             when (it) {
                 is Account -> mutator(it)
                 is CollectionAccount -> {
-                    // val tmp = it
                     (mutator(it) as CollectionAccount).addAll(it.map(mutator).subAccounts)
                 }
                 else -> throw Error("unknown type ${it::class.qualifiedName}")

@@ -363,7 +363,7 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
                         createCell(colOriginal).setCellValue(account.displayValue)
                     else {
                         var cnt0 = colOriginal
-                        chronoData.forEach { t, u ->
+                        chronoData.forEach { (_, u) ->
                             createCell(cnt0++).setCellValue(u[account.id] ?: 0.0)
                         }
                     }
@@ -440,21 +440,22 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
                 createCell(colName).setCellValue(titleName)
 
                 // if component of the entities defined, the names of entity set to the columns
-                // if chrononData of the entity defined, the time paramenter set to the columns
-                if (components != null) {
-                    var cnti = colName + 1
-                    components.forEach { (k, _) ->
-                        createCell(cnti++).setCellValue(k.name)
+                // if chrononData of the entity defined, the time parameter set to the columns
+                when {
+                    components != null -> {
+                        var cnti = colName + 1
+                        components.forEach { (k, _) ->
+                            createCell(cnti++).setCellValue(k.name)
+                        }
+                        createCell(cnti++).setCellValue(titleOriginal)
                     }
-                    createCell(cnti++).setCellValue(titleOriginal)
-                } else if (chronoData != null) {
-                    var cnti = colName + 1
-                    chronoData.forEach { (k, _) ->
-                        createCell(cnti++).setCellValue(k.toString())
+                    chronoData != null -> {
+                        var cnti = colName + 1
+                        chronoData.forEach { (k, _) ->
+                            createCell(cnti++).setCellValue(k.toString())
+                        }
                     }
-                    createCell(cnti++).setCellValue(titleOriginal)
-                } else {
-                    createCell(colOriginal).setCellValue(titleOriginal)
+                    else -> createCell(colOriginal).setCellValue(titleOriginal)
                 }
 
                 // dump the categories
@@ -463,8 +464,9 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
                 }
 
                 // set the total sum column, if chronoData not defined
-                if (chronoData == null)
+                if (chronoData == null) {
                     createCell(colLast).setCellValue(titleFinal)
+                }
             }
 
             // write the content
@@ -584,7 +586,7 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
 
                 sht.rowIterator().forEach { x ->
                     if (x.rowNum > 1) {
-                        val c = x.getCell(colLast + if (chronoData != null) -1 else 0)
+                        val c = x.getCell(colLast)
                         res[x.getCell(colId).stringCellValue.toLong()] = "'${sht.sheetName}'!${c.address}"
                     }
                 }
