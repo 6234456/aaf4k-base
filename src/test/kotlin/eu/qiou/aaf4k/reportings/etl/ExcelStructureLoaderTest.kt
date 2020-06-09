@@ -52,13 +52,13 @@ class ExcelStructureLoaderTest {
         //  println(reporting2)
 
         Reporting(report1.update(d1).shorten(whiteList = l) as CollectionAccount).toXl(
-            "trail.xlsx",
+            "trail1.xlsx",
             Template.Theme.BLACK_WHITE,
             shtNameOverview = "2019",
             shtNameAdjustment = "adj2019"
         )
-        Reporting(report1.update(d1).shorten(whiteList = l) as CollectionAccount).toXl(
-            "trail.xlsx",
+        Reporting(report2.update(d2).shorten(whiteList = l) as CollectionAccount).toXl(
+            "trail1.xlsx",
             Template.Theme.BLACK_WHITE,
             shtNameOverview = "2018",
             shtNameAdjustment = "adj2018"
@@ -68,5 +68,8 @@ class ExcelStructureLoaderTest {
 
     @Test
     fun getPath() {
+        for (i in 1.until(3)) {
+            println(i)
+        }
     }
 }

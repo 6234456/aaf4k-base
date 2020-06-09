@@ -1,6 +1,7 @@
 package eu.qiou.aaf4k.reportings.base
 
 import eu.qiou.aaf4k.reportings.GlobalConfiguration
+import eu.qiou.aaf4k.reportings.etl.MultiDataLoader
 import eu.qiou.aaf4k.util.foldTrackListInit
 import eu.qiou.aaf4k.util.i18n.Message
 import eu.qiou.aaf4k.util.io.ExcelUtil
@@ -251,9 +252,11 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
              locale: Locale = GlobalConfiguration.DEFAULT_LOCALE,
              shtNameOverview: String = "src",
              shtNameAdjustment: String = "adj",
-             components: Map<Entity, Reporting>? = null
+             components: Map<Entity, Reporting>? = null,
+             chronos: MultiDataLoader? = null
     ): Pair<Sheet, Map<Long, String>> {
 
+        // i18n of the titles
         val msg = Message(locale)
 
         val titleID: String = msg.getString("accountId")
@@ -267,55 +270,82 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
         val descStr = msg.getString("desc")
         val amount = msg.getString("amount")
 
+        //global format
         val headingHeight = 50f
         val rowHeight = 24f
-
-        val startRow = 1
-        var cnt = startRow
-        val colId = 0
-        val colName = colId + 1
-        val colOriginal = colName + 1
-        val colLast = colOriginal + categories.size + 1 + (components?.size ?: 0)
-
-        val colSumOriginal = if (components == null) null else colName + 1 + components.size
-        var colCategoryBegin = colOriginal + 1 + (components?.size ?: 0)
+        //definition of cell style
         var light: CellStyle? = null
         var dark: CellStyle? = null
         var fontBold: Font? = null
         var fontNormal: Font?
 
+        val startRow = 1
+        var cnt = startRow
+
+        //column position of the account id
+        val colId = 0
+
+        //column position of the account name
+        val colName = colId + 1
+
+        //column position of the original value before adjustment and reclassification
+        val colOriginal = colName + 1
+
+        //the data of the same entity for several reporting period
+        val chronoData = chronos?.loadMultiple()
+
+        // the position of sum column of all the previous columns of the account
+        val colLast = colOriginal + categories.size + 1 + (components?.size ?: 0) + (chronoData?.size ?: 0)
+
+        // sum of the account of all the entities in the group, only relavent with components
+        val colSumOriginal = if (components == null) null else colName + 1 + components.size
+
+        // the beginning column of the Konsolidierungsmassnahmen
+        var colCategoryBegin = colOriginal + 1 + (components?.size ?: 0)
+
         val res: MutableMap<Long, String> = mutableMapOf()
 
         var res1: Pair<Sheet, Map<Long, String>>? = null
 
-
         fun writeAccountToXl(account: ProtoAccount, sht: Sheet, indent: Int = 0) {
 
+            // the total account and subaccounts, the total number of the rows
             val l = if (account is ProtoCollectionAccount) account.countRecursively(true) else 1
+
+            // the depth of account,  the indent of cell
             val lvl = if (account is ProtoCollectionAccount) account.levels() else 1
 
             colCategoryBegin = colOriginal + 1 + (components?.size ?: 0)
 
+            //create the content row by row below the table head
             sht.createRow(cnt++).apply {
                 createCell(colId, CellType.STRING).setCellValue(account.id.toString())
                 createCell(colName).setCellValue("${if (account.isStatistical) prefixStatistical else ""}${account.name}")
 
                 if (l > 1) {
+                    // for Collection Account
                     if (lvl == 2) {
+                        // which only contains the atomic account
                         colOriginal.until(colLast).forEach {
+                            // with components and current column is not the sum column
+                            // without components
                             if (colSumOriginal == null || colSumOriginal != it) {
                                 createCell(it).cellFormula =
-                                        "SUM(${CellUtil.getCell(CellUtil.getRow(this.rowNum + 1, sht), it).address}:" +
-                                                "${CellUtil.getCell(CellUtil.getRow(this.rowNum + l - 1, sht), it).address}" +
-                                                ")"
+                                    "SUM(${CellUtil.getCell(CellUtil.getRow(this.rowNum + 1, sht), it).address}:" +
+                                            "${CellUtil.getCell(CellUtil.getRow(this.rowNum + l - 1, sht), it).address}" +
+                                            ")"
                             } else {
+                                // with components
+                                // sum up the range from column of the value before adj to previous column
                                 createCell(it).cellFormula = "SUM(${getCell(colOriginal).address}:${(getCell(it - 1)
-                                        ?: createCell(it - 1)).address})"
+                                    ?: createCell(it - 1)).address})"
                             }
                         }
                     } else {
+                        // more than 2 levels, sum the sum account of level 2
                         //a sum account can not only contain the statistical children
-                        val tmp = (account as ProtoCollectionAccount).subAccounts.foldTrackListInit(0) { a, protoAccount, _ ->
+                        val tmp = (account as ProtoCollectionAccount).subAccounts
+                            .foldTrackListInit(0) { a, protoAccount, _ ->
                             a + if (protoAccount is ProtoCollectionAccount) protoAccount.countRecursively(true) else 1
                         }.dropLast(1).zip(account.subAccounts.map { !it.isStatistical })
 
@@ -331,6 +361,7 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
                         }
                     }
                 } else {
+                    // set value of the atomic account
                     createCell(colOriginal).setCellValue(account.displayValue)
                 }
 
@@ -338,13 +369,19 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
                     createCell(colCategoryBegin - 1).cellFormula = "SUM(${(getCell(colCategoryBegin - 2)
                             ?: createCell(colCategoryBegin - 2)).address}:${(getCell(colOriginal)
                             ?: createCell(colOriginal)).address})"
-                }
-                createCell(colLast).cellFormula = "SUM(${
-                (getCell(colSumOriginal ?: colOriginal) ?: createCell(colSumOriginal
-                        ?: colOriginal)).address}:${(getCell(colLast - 1)
-                        ?: createCell(colLast - 1)).address})"
+                } else if (chronoData != null) {
 
-                colId.until(colLast + 1).forEach { i ->
+                } else {
+                    createCell(colLast).cellFormula = "SUM(${
+                    (getCell(colSumOriginal ?: colOriginal) ?: createCell(
+                        colSumOriginal
+                            ?: colOriginal
+                    )).address}:${(getCell(colLast - 1)
+                        ?: createCell(colLast - 1)).address})"
+                }
+
+                // format the content range
+                colId.until(colLast + 1 + if (chronoData != null) -1 else 0).forEach { i ->
                     val c = getCell(i) ?: createCell(i, CellType.NUMERIC)
 
                     if (rowNum >= 3) {
@@ -367,17 +404,22 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
                 }
             }
 
+            // if the target account is CollectionAccount
+            // goes one level deeper and loop through the structure recursively
             if (account is ProtoCollectionAccount)
                 account.subAccounts.let {
                     it.forEach { x ->
                         writeAccountToXl(x, sht, indent + 1)
                     }
 
+                    //group the subaccounts under the same sup-account
                     sht.groupRow(cnt - l + 1, cnt - 1)
                 }
         }
 
         ExcelUtil.createWorksheetIfNotExists(path, sheetName = shtNameOverview, callback = { sht ->
+
+            // get the wb and define the style
             val w = sht.workbook
             val heading = Template.heading(w, t)
             light = Template.rowLight(w)
@@ -387,43 +429,63 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
 
             sht.isDisplayGridlines = false
 
+            // set the table head
             sht.createRow(0).apply {
+                // set title account number
                 createCell(colId).setCellValue(titleID)
+
+                // set title account name
                 createCell(colName).setCellValue(titleName)
 
-                if (components == null) {
-                    createCell(colOriginal).setCellValue(titleOriginal)
-                } else {
+                // if component of the entities defined, the names of entity set to the columns
+                // if chrononData of the entity defined, the time paramenter set to the columns
+                if (components != null) {
                     var cnti = colName + 1
                     components.forEach { (k, _) ->
                         createCell(cnti++).setCellValue(k.name)
                     }
                     createCell(cnti++).setCellValue(titleOriginal)
+                } else if (chronoData != null) {
+                    var cnti = colName + 1
+                    chronoData.forEach { (k, _) ->
+                        createCell(cnti++).setCellValue(k.toString())
+                    }
+                    createCell(cnti++).setCellValue(titleOriginal)
+                } else {
+                    createCell(colOriginal).setCellValue(titleOriginal)
                 }
+
+                // dump the categories
                 this@Reporting.categories.forEach {
                     createCell(colCategoryBegin++).setCellValue(it.name)
                 }
-                createCell(colLast).setCellValue(titleFinal)
+
+                // set the total sum column, if chronoData not defined
+                if (chronoData == null)
+                    createCell(colLast).setCellValue(titleFinal)
             }
 
+            // write the content
             this.structure.forEach {
                 writeAccountToXl(it, sht)
             }
 
+            // format the table header
             sht.getRow(0).apply {
                 this.forEach {
                     ExcelUtil.Update(it).style(ExcelUtil.StyleBuilder(w)
-                            .fromStyle(heading, false)
-                            .borderStyle(
-                                    right = if (it.columnIndex == colLast) BorderStyle.MEDIUM else null,
-                                    left = if (it.columnIndex == colId) BorderStyle.MEDIUM else null
-                            )
-                            .build())
+                        .fromStyle(heading, false)
+                        .borderStyle(
+                            right = if (it.columnIndex == colLast) BorderStyle.MEDIUM else null,
+                            left = if (it.columnIndex == colId) BorderStyle.MEDIUM else null
+                        )
+                        .build())
                     sht.setColumnWidth(it.columnIndex, 4000)
                 }
                 heightInPoints = headingHeight
             }
 
+            //set row height
             sht.iterator().forEach {
                 if (it.rowNum > 0)
                     it.heightInPoints = rowHeight
@@ -446,17 +508,17 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
                     createCell(5).setCellValue(categoryName)
 
                     ExcelUtil.StyleBuilder(w).fromStyle(heading, false).applyTo(
-                            0.until(6).map { i ->
-                                shtCat.setColumnWidth(i, 4000)
-                                getCell(i)
-                            }
+                        0.until(6).map { i ->
+                            shtCat.setColumnWidth(i, 4000)
+                            getCell(i)
+                        }
                     )
 
                     heightInPoints = headingHeight
                 }
 
                 val bookingFormat = ExcelUtil.StyleBuilder(w).fromStyle(dark!!, false)
-                        .dataFormat(ExcelUtil.DataFormat.NUMBER.format)
+                    .dataFormat(ExcelUtil.DataFormat.NUMBER.format)
 
                 bookings = this.categories.fold(listOf()) { acc, e ->
                     val data = mutableMapOf<Long, String>()
@@ -473,10 +535,10 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
                                 this.createCell(5).setCellValue(e.name)
 
                                 bookingFormat.applyTo(
-                                        0.until(6).map { i ->
-                                            ExcelUtil.Update(this.getCell(i)).alignment(if (i < 2) HorizontalAlignment.RIGHT else null)
-                                            this.getCell(i)
-                                        }
+                                    0.until(6).map { i ->
+                                        ExcelUtil.Update(this.getCell(i)).alignment(if (i < 2) HorizontalAlignment.RIGHT else null)
+                                        this.getCell(i)
+                                    }
                                 )
 
                                 if (data.containsKey(acc.id)) {
@@ -504,7 +566,7 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
 
             sht.rowIterator().forEach { x ->
                 if (x.rowNum > 1) {
-                    val c = x.getCell(colLast)
+                    val c = x.getCell(colLast + if (chronoData != null) -1 else 0)
                     res[x.getCell(colId).stringCellValue.toLong()] = "'${sht.sheetName}'!${c.address}"
                 }
             }
