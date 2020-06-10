@@ -4,6 +4,7 @@ import eu.qiou.aaf4k.reportings.base.Account
 import eu.qiou.aaf4k.reportings.base.AccountingFrame
 import eu.qiou.aaf4k.reportings.base.CollectionAccount
 import eu.qiou.aaf4k.reportings.base.Reporting
+import eu.qiou.aaf4k.util.template.ExcelReportingTemplate
 import eu.qiou.aaf4k.util.template.Template
 import eu.qiou.aaf4k.util.time.TimeParameters
 import eu.qiou.aaf4k.util.unit.CurrencyUnit
@@ -44,6 +45,25 @@ class ExcelStructureLoaderTest {
                 TimeParameters.forYear(2019) to dataLoader.load(),
                 TimeParameters.forYear(2018) to dataLoader2.load()
             ), "trail2.xlsx", shtNameOverview = "overview"
+        )
+
+        val d = (reporting2.update(dataLoader.load()) as CollectionAccount)
+            .flattenAll().filter { it is CollectionAccount }.map { it.id - 10000 to it.decimalValue * it.reportingType.sign }.toMap() +
+                (reporting2.update(dataLoader2.load()) as CollectionAccount)
+                    .flattenAll().filter { it is CollectionAccount }.map { it.id + 80000 to it.decimalValue * it.reportingType.sign }.toMap() + mapOf(
+            "YYYY" to 2020,
+            "entity" to "Demo GmbH",
+            "MM" to 12,
+            "DD" to 31
+        )
+
+
+        ExcelReportingTemplate(
+            tpl = this.javaClass.classLoader.getResource("data/cn/CAS.xlsx").path,
+            shtName = "BS", fmt = "%.0f"
+        ).export(
+            d,
+            path = "trail3.xlsx"
         )
     }
 
@@ -137,15 +157,6 @@ class ExcelStructureLoaderTest {
             reporting2.replace(account)
         }
 
-        println(reporting2.shorten(whiteList = listOf(1200, 8120)))
-
-        val extendedList: Set<Long> = listOf(1200L, 8120L).fold(setOf()) { acc, l ->
-            acc + (reporting2.search(l)?.let {
-                it.allParentAccounts().map { it.id }
-            } ?: setOf())
-        }
-
-        println(extendedList)
 
         println(reporting2.findAccountByID(17000L)!!.superAccounts)
 

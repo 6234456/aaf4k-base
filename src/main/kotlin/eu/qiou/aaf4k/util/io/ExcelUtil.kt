@@ -57,6 +57,13 @@ object ExcelUtil {
             XSSFWorkbook(inputStream)) to inputStream
     }
 
+    fun getWorkbook(stream: FileInputStream, isXlsx: Boolean = true): Pair<Workbook, FileInputStream> {
+        return (if (isXlsx)
+            XSSFWorkbook(stream)
+        else
+            HSSFWorkbook(stream)) to stream
+    }
+
     fun processWorkbook(path: String, callback: (Workbook) -> Unit) {
         val (wb, inputStream) = getWorkbook(path)
 
