@@ -51,10 +51,12 @@ class ExcelStructureLoaderTest {
             .flattenAll().filter { it is CollectionAccount }.map { it.id - 10000 to it.decimalValue * it.reportingType.sign }.toMap() +
                 (reporting2.update(dataLoader2.load()) as CollectionAccount)
                     .flattenAll().filter { it is CollectionAccount }.map { it.id + 80000 to it.decimalValue * it.reportingType.sign }.toMap() + mapOf(
-            "YYYY" to 2020,
+            "YYYY" to 2019,
             "entity" to "Demo GmbH",
+            "unit" to "欧元",
             "MM" to 12,
-            "DD" to 31
+            "DD" to 31,
+            "isAG" to false
         )
 
 
