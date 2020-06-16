@@ -49,7 +49,7 @@ class ExcelStructureLoaderTest {
 
         val d = (reporting2.update(dataLoader.load()) as CollectionAccount)
             .flattenAll().filter { it is CollectionAccount }.map { it.id - 10000 to it.decimalValue * it.reportingType.sign }.toMap() +
-                (reporting2.update(dataLoader2.load()) as CollectionAccount)
+                (reporting2.nullify().update(dataLoader2.load()) as CollectionAccount)
                     .flattenAll().filter { it is CollectionAccount }.map { it.id + 80000 to it.decimalValue * it.reportingType.sign }.toMap() + mapOf(
             "YYYY" to 2019,
             "entity" to "Demo GmbH",
@@ -59,13 +59,13 @@ class ExcelStructureLoaderTest {
             "isAG" to false
         )
 
-
         ExcelReportingTemplate(
             tpl = this.javaClass.classLoader.getResource("data/cn/CAS.xlsx").path,
-            shtName = "BS", fmt = "%.0f"
+            fmt = "%.0f"
         ).export(
             d,
-            path = "trail3.xlsx"
+            path = "trail3.xlsx",
+            filter = { s -> s.sheetName.length == 2 }
         )
     }
 

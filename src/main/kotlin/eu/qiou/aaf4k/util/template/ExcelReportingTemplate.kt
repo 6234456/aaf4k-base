@@ -6,9 +6,10 @@ import org.apache.poi.ss.usermodel.Sheet
 
 class ExcelReportingTemplate(
     private val tpl: String,
-    private val prefix: String = "[", private val affix: String = "]",
-    private val shtName: String? = null, private val shtIndex: Int = 0, private val fmt: String = "%.2f"
+    prefix: String = "[", affix: String = "]",
+    private val shtName: String? = null, private val shtIndex: Int = 0, fmt: String = "%.2f"
 ) {
+    private val engine = TemplateEngine(prefix, affix, fmt)
 
     fun export(
         data: Map<*, *>,
@@ -18,8 +19,8 @@ class ExcelReportingTemplate(
         }
     ) {
         val (wb, ips) = ExcelUtil.getWorkbook(tpl)
-        val engine = TemplateEngine(prefix, affix, fmt)
         val d = data.map { it.key.toString() to it.value!! }.toMap()
+        val toRemove: MutableList<Int> = mutableListOf()
 
         wb.sheetIterator().forEach { sht ->
             if (filter(sht)) {
@@ -37,9 +38,15 @@ class ExcelReportingTemplate(
                         }
                     }
                 }
+            } else {
+                toRemove.add(wb.getSheetIndex(sht))
             }
         }
 
+        toRemove.reverse()
+        toRemove.forEach {
+            wb.removeSheetAt(it)
+        }
 
         wb.forceFormulaRecalculation = true
         ExcelUtil.saveWorkbook(path, wb)

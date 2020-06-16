@@ -9,8 +9,6 @@ class TemplateEngineTest {
     )
     @Test
     fun compile() {
-        println(this.javaClass.classLoader.getResource("data/cn/CAS.xlsx").path)
-
         ExcelReportingTemplate(
             tpl = this.javaClass.classLoader.getResource("data/cn/CAS.xlsx").path,
             shtName = "BS", fmt = "%.0f"
@@ -18,8 +16,6 @@ class TemplateEngineTest {
             d,
             path = "trail3.xlsx"
         ) //.compile("data/cn/CAS.xlsx")
-
-
     }
 
     @Test
