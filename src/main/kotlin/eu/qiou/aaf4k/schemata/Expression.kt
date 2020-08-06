@@ -1,10 +1,12 @@
 package eu.qiou.aaf4k.schemata
 
-class Expression : Value {
+
+class Expression {
+
     var value: Double = 0.0
 
     constructor(value: Value) {
-        this.value = value.value()
+        this.value = value.value
     }
 
     constructor(operator: Operator, left: Value, right: Value) {
@@ -17,8 +19,5 @@ class Expression : Value {
         }
     }
 
-    override fun value(): Double {
-        return value
-    }
 }
 

@@ -1,15 +1,13 @@
 package eu.qiou.aaf4k.schemata
 
-data class Variable(val desc: String, var value: Double) : Value {
-    override fun value(): Double {
-        return value
-    }
+class Variable(id: Int, desc: String, value: Double, source: Source? = null) :
+    Value(id, desc = desc, value = value, source = source) {
 
     operator fun unaryPlus(): Expression {
         return Expression(this)
     }
 
     operator fun unaryMinus(): Expression {
-        return Expression(this.copy(value = this.value * -1.0))
+        return Expression(Variable(id, desc, value * -1, source))
     }
 }

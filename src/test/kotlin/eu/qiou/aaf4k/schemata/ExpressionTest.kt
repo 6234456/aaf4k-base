@@ -8,8 +8,10 @@ class ExpressionTest {
 
     @Test
     fun value() {
-        val v = Constant("Tarif", 0.05) * Variable("trail", 23.2) + Variable("§ 32d Abs.2 Satz 3 EstG", 32.0)
+        val v = Constant(10, "Tarif", 0.05) * Variable(21, "trail", 23123123.2)
+        println(v.value)
 
-        print(v.value)
+        println((112.88).toInt())
+
     }
 }
