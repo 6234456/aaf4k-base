@@ -15,6 +15,14 @@ class Citation {
         }
     }
 
+    operator fun contains(citations: Citation): Boolean {
+        if (this.list.size >= citations.list.size) return false
+
+        return citations.list.take(this.list.size).zip(this.list).all {
+            it.first == it.second
+        }
+    }
+
     override fun toString(): String {
         return list.map { it.toString() }.reduce { acc, s -> "$acc $s" }
     }
