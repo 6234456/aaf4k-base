@@ -12,22 +12,22 @@ data class Source(
     }
 
     override fun toString(): String {
-        val temp = when (legislation) {
-            Legislation.DE_BMF_SCHREIBEN -> "${legislation.desc} vom $validate"
-            else -> "${legislation.desc}"
+        return when (legislation) {
+            Legislation.DE_BMF_SCHREIBEN -> "$citation ${legislation.abbr} vom $validate"
+            Legislation.DE_ESTH -> "H $citation ${legislation.abbr}"
+            Legislation.DE_ESTR -> "R $citation ${legislation.abbr}"
+            else -> "${legislation.abbr}"
         }
-
-        return "$citation $temp"
     }
 }
 
-enum class Legislation(val locale: Locale, val desc: String) {
-    DE_HGB(Locale.GERMAN, "Handelsgesetzbuch"),
-    DE_BGB(Locale.GERMAN, "Bürgergesetzbuch"),
-    DE_BMF_SCHREIBEN(Locale.GERMAN, "BMF Schreiben"),
-    DE_ESTG(Locale.GERMAN, "Einkommensteuergesetz"),
-    DE_ESTR(Locale.GERMAN, "Einkommensteuerrichtlinie"),
-    DE_ESTH(Locale.GERMAN, "Einkommensteuerrichthinweis"),
+enum class Legislation(val locale: Locale, val desc: String, val abbr: String) {
+    DE_HGB(Locale.GERMAN, "Handelsgesetzbuch", "HGB"),
+    DE_BGB(Locale.GERMAN, "Bürgergesetzbuch", "BGB"),
+    DE_BMF_SCHREIBEN(Locale.GERMAN, "BMF Schreiben", "BMF Schreiben"),
+    DE_ESTG(Locale.GERMAN, "Einkommensteuergesetz", "EStG"),
+    DE_ESTR(Locale.GERMAN, "Einkommensteuerrichtlinie", "EStR"),
+    DE_ESTH(Locale.GERMAN, "Einkommensteuerrichthinweis", "EStH")
 }
 
 
