@@ -2,8 +2,6 @@ package eu.qiou.aaf4k.schemata
 
 import org.junit.Test
 
-import org.junit.Assert.*
-
 class ExpressionTest {
 
     @Test
@@ -18,7 +16,8 @@ class ExpressionTest {
 
         println((112.88).toInt())
 
-        Citations.of("§ 32a 3 Art. 3 Nr. 5 Satz 2")
+        println(Citations.of("§ 3 Abs. 1 Nr. 40 Buchstabe d"))
+        println((Citations.PARAGRAPH * 3 + Citations.SECTION * 1).contains(Citations.of("§ 3 Abs.     1 Nr.   40 Buchstabe d")))
 
     }
 }

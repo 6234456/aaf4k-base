@@ -1,7 +1,5 @@
 package eu.qiou.aaf4k.schemata
 
-import java.util.*
-
 enum class Citations(var number: String = "") {
     PARAGRAPH,
     ARTICLE,
@@ -28,8 +26,8 @@ enum class Citations(var number: String = "") {
             SENTENCE -> "Satz $number"
             NUMBER -> "Nr. $number"
             NOTE -> "Tz. $number"
-            HALF_SENTENCE -> "${number}. Halbsatz"
-            ALTERNATIVE -> "Alternativ ${number}"
+            HALF_SENTENCE -> "Halbsatz $number"
+            ALTERNATIVE -> "Alternativ $number"
             DOUBLE_LETTER -> "Doppelbuchstabe $number"
             LETTER -> "Buchstabe $number"
         }
@@ -37,7 +35,7 @@ enum class Citations(var number: String = "") {
 
     companion object {
         private val symbols = listOf(
-            "$",
+            "§",
             "Art.",
             "Book",
             "Band",
@@ -46,12 +44,12 @@ enum class Citations(var number: String = "") {
             "Satz",
             "Nr.",
             "Tz.",
-            ". Halbsatz",
+            "Halbsatz",
             "Alternativ",
             "Doppelbuchstabe",
             "Buchstabe"
-        )
-        private val symbolsCitation = listOf(
+        ).zip(
+            listOf(
             PARAGRAPH,
             ARTICLE,
             BOOK,
@@ -65,34 +63,39 @@ enum class Citations(var number: String = "") {
             ALTERNATIVE,
             DOUBLE_LETTER,
             LETTER
-        )
+            )
+        ).toMap()
 
-        fun of(src: String) {
+        fun of(src: String): Citation {
             // "§ 32a 3 Art. 3 Nr. 5 EStG"
 
-            val s = mutableListOf<String>()
-            val sym = mutableListOf<Citations>()
-            val nr = mutableListOf<String>()
-            var start = 0
-            for (i in 0..src.length) {
-                val temp = src.substring(start, i)
-                if (temp in symbols || i == src.length - 1) {
-                    if (s.isNotEmpty()) {
-                        nr.add(s.joinToString(" "))
-                        s.removeAll { true }
+            var tmpString = ""
+            var symbol: Citations? = null
+            var cnt = 0
+
+            val l = src.split("""\s+""".toRegex())
+
+            return l.fold(Citation()) { acc: Citation, s: String ->
+                cnt++
+
+                if (symbols.containsKey(s)) {
+                    if (tmpString.isNotEmpty() && symbol != null) {
+                        val res = acc + symbol!! * tmpString.trim()
+                        symbol = symbols[s]
+                        tmpString = ""
+                        res
+                    } else {
+                        symbol = symbols[s]
+                        acc
                     }
-
-                    if (i != src.length - 1)
-                        sym.add(symbolsCitation[symbols.indexOf(temp)])
-
-                    start = i + 1
-                } else if (i < src.length - 1 && src.substring(i, i + 1) == " ") {
-                    temp.let { if (it.isNotEmpty()) s.add(it) }
-                    start = i + 1
+                } else if (cnt == l.size) {
+                    tmpString += " $s"
+                    acc + symbol!! * tmpString.trim()
+                } else {
+                    tmpString += " $s"
+                    acc
                 }
             }
-
-            println(sym.zip(nr))
         }
     }
 }
