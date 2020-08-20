@@ -6,18 +6,17 @@ class ExpressionTest {
 
     @Test
     fun value() {
-        val v = Constant(
+        val v = Variable(21, "Einkommen aus Dividenden", 1200.2) * Constant(
             10,
             "Teileinkünftsverfahren (40% Steuerfrei)",
             0.4,
-            Source(Legislation.DE_ESTG, Citations.PARAGRAPH * 3 + Citations.SECTION * 1 + Citations.NUMBER * 40)
-        ) * Variable(21, "trail", 123.2)
-        println(v.value)
+            Source("EStG", "§ 3 Nr. 40 Satz 1 Buchstabe d")
+        ) - Constant(
+            12, "Steuerabzug zu 60%", 0.6,
+            Source("EStG", "§ 3c Abs. 2")
+        ) * Variable(22, "Zinsaufwand i.Z.m. der Dividenden", 200.0)
 
-        println((112.88).toInt())
-
-        println(Citations.of("§ 3 Abs. 1 Nr. 40 Buchstabe d"))
-        println((Citations.PARAGRAPH * 3 + Citations.SECTION * 1).contains(Citations.of("§ 3 Abs.     1 Nr.   40 Buchstabe d")))
+        println(v)
 
     }
 }

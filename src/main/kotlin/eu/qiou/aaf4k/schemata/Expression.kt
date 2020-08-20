@@ -1,23 +1,5 @@
 package eu.qiou.aaf4k.schemata
 
 
-class Expression {
-
-    var value: Double = 0.0
-
-    constructor(value: Value) {
-        this.value = value.value
-    }
-
-    constructor(operator: Operator, left: Value, right: Value) {
-        this.value = operator.calculate(left, right)
-    }
-
-    constructor(vararg expression: Expression) {
-        this.value = expression.fold(0.0) { acc, x ->
-            acc + x.value
-        }
-    }
-
-}
-
+class Expression(val operator: Operator, val left: Value, val right: Value) :
+    Value(-1, operator.calculate(left, right), "", null)

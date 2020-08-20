@@ -1,7 +1,7 @@
 package eu.qiou.aaf4k.schemata
 
-object Add : Operator {
+object Minus : Operator {
     override fun calculate(left: Double, right: Double): Double {
-        return left + right
+        return left - right
     }
 }
