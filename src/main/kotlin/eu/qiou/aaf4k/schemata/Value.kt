@@ -21,4 +21,21 @@ abstract class Value(val id: Int, var value: Double, val desc: String = "", val 
         }
     }
 
+    fun update(dict: Map<Int, Double>): Value {
+        return if (this is Expression) {
+            Expression(operator, left.update(dict), right.update(dict))
+        } else {
+            if (dict.containsKey(id)) {
+                when (this) {
+                    is Variable -> Variable(id, desc, dict[id] ?: error(""), source)
+                    is Constant -> Constant(id, desc, dict[id] ?: error(""), source)
+                    is Expression -> throw Exception("")
+                    else -> throw Exception("Error")
+                }
+            } else {
+                this
+            }
+        }
+    }
+
 }

@@ -11,12 +11,12 @@ class ExpressionTest {
             "Teileinkünftsverfahren (40% Steuerfrei)",
             0.4,
             Source("EStG", "§ 3 Nr. 40 Satz 1 Buchstabe d")
-        ) - Constant(
+        ) - Variable(22, "Zinsaufwand i.Z.m. der Dividenden", 200.0) * Constant(
             12, "Steuerabzug zu 60%", 0.6,
             Source("EStG", "§ 3c Abs. 2")
-        ) * Variable(22, "Zinsaufwand i.Z.m. der Dividenden", 200.0)
+        )
 
-        println(v)
+        println(v.update(mapOf(21 to 100.0, 22 to 300.0)))
 
     }
 }
