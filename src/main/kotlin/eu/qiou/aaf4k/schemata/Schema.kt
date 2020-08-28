@@ -1,4 +1,3 @@
 package eu.qiou.aaf4k.schemata
 
-class Schema {
-}
+data class Schema(val desc:String, val value:String, val indentLevel: Int)

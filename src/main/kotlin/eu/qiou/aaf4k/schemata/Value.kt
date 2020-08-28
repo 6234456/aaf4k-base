@@ -1,6 +1,8 @@
 package eu.qiou.aaf4k.schemata
 
 abstract class Value(val id: Int, var value: Double, val desc: String = "", val source: Source?) {
+    // set the indent level by display
+    var indentLevel: Int = 0
 
     operator fun plus(value: Value): Expression {
         return Expression(Add, this, value)
@@ -19,6 +21,13 @@ abstract class Value(val id: Int, var value: Double, val desc: String = "", val 
             is Expression -> "${this.left}${this.right}\n\t\t\t\t${this.value}\n"
             else -> "${this.desc}\t\t\t\t${this.value}\n${this.source ?: ""}"
         }
+    }
+    protected fun toSchema(): List<Schema> {
+        return when (this) {
+            is Expression -> this.left.toSchema() + this.right.toSchema()
+            else -> listOf()
+        } + listOf(Schema("${this.desc}${if (this.source == null) "" else "\n${this.source}"}",
+            "${this.value}", indentLevel))
     }
 
     fun update(dict: Map<Int, Double>): Value {
