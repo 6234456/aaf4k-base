@@ -13,6 +13,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.text.NumberFormat
 import java.time.LocalDate
 import java.util.*
 
@@ -374,13 +375,23 @@ object ExcelUtil {
         }
     }
 
-    enum class DataFormat(val format: String) {
-        DATE("mmm dd, yyyy"),
-        NUMBER("#,##0.00"),
-        BOOLEAN("#"),
-        INT("#.#"),
-        DEFAULT("#"),
-        STRING("#")
+    enum class DataFormat(val format: String, val stringFormat: (Any) -> String) {
+        DATE("mmm dd, yyyy", {String.format("%tb %td, %tY", it)} ),
+        NUMBER("#,##0.00", {String.format("%,.2f", it)}),
+        BOOLEAN("#", {String.format("%b", it)}),
+        INT("#.#", {String.format("%,.0f", it)}),
+        DEFAULT("#", {String.format("%s", it)}),
+        STRING("#", {String.format("%s", it)}),
+        PERCENTAGE_NUMBER("0.00%", { NumberFormat.getPercentInstance().apply { minimumFractionDigits = 2 }.format(it) }),
+        PERCENTAGE("0%", { NumberFormat.getPercentInstance().apply { minimumFractionDigits = 0 }.format(it) });
+
+        companion object{
+            fun of(name: String):DataFormat{
+                return DataFormat.values().firstOrNull { it.name == name } ?: throw java.lang.Exception("Unknown Name: $name")
+            }
+        }
+
+
     }
 
     //due to the limitation of HSSF, font should be possibly re-used

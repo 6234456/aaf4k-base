@@ -1,6 +1,8 @@
 package eu.qiou.aaf4k.schemata
 
-abstract class Value(val id: Int, var value: Double, val desc: String = "", val source: Source?) {
+import eu.qiou.aaf4k.util.io.ExcelUtil
+
+abstract class Value(val id: Int, var value: Double, val desc: String = "", val source: Source?, val format: ExcelUtil.DataFormat = ExcelUtil.DataFormat.NUMBER) {
     // set the indent level by display
     var indentLevel: Int = 0
 
@@ -16,10 +18,17 @@ abstract class Value(val id: Int, var value: Double, val desc: String = "", val 
         return Expression(Multiply, this, value)
     }
 
+    fun byId(id: Int):Value? {
+        return when(this){
+            is Expression -> this.left.byId(id) ?: (this.right.byId(id))
+            else -> if (this.id == id) this else null
+        }
+    }
+
     override fun toString(): String {
         return when (this) {
-            is Expression -> "${this.left}${this.right}\n\t\t\t\t${this.value}\n"
-            else -> "${this.desc}\t\t\t\t${this.value}\n${this.source ?: ""}"
+            is Expression -> String.format("%s%n%60s", "${this.left}\n${this.right}", this.format.stringFormat(this.value)) //"${this.left}\n${this.right}\n\t\t\t\t${ this.format.stringFormat(this.value) }\n"
+            else ->  String.format("%-50s%s%n%s", this.desc, this.format.stringFormat(this.value), this.source ?: "") //"${this.desc}\t\t\t\t${this.format.stringFormat(this.value)}\n${this.source ?: ""}"
         }
     }
     protected fun toSchema(): List<Schema> {

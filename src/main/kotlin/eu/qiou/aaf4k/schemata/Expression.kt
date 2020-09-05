@@ -4,7 +4,7 @@ import eu.qiou.aaf4k.util.io.ExcelUtil
 
 
 class Expression(val operator: Operator, val left: Value, val right: Value) :
-    Value(-1, operator.calculate(left, right), "", null){
+    Value(-1, operator.calculate(left, right), "", null, ExcelUtil.DataFormat.NUMBER){
 
     fun toXl(path:String){
         ExcelUtil.createWorksheetIfNotExists(path, callback = {

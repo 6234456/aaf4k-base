@@ -1,5 +1,6 @@
 package eu.qiou.aaf4k.schemata
 
+import eu.qiou.aaf4k.util.io.ExcelUtil
 import org.junit.Test
 
 class ExpressionTest {
@@ -10,7 +11,7 @@ class ExpressionTest {
             10,
             "Teileinkünftsverfahren (40% Steuerfrei)",
             0.4,
-            Source("EStG", "§ 3 Nr. 40 Satz 1 Buchstabe d")
+            Source("EStG", "§ 3 Nr. 40 Satz 1 Buchstabe d"), ExcelUtil.DataFormat.PERCENTAGE
         )
 
         val v2 = Variable(21, "Einkommen aus Dividenden", 1200.2)
@@ -19,14 +20,21 @@ class ExpressionTest {
 
         val v4 = Constant(
             12, "Steuerabzug zu 60%", 0.6,
-            Source("EStG", "§ 3c Abs. 2")
+            Source("EStG", "§ 3c Abs. 2"), ExcelUtil.DataFormat.PERCENTAGE
         )
 
-        val v = (v2 - (v1 * v2).toVariable(31, desc = v1.desc)).apply { indentLevel = 1 } - (v3*v4).apply { indentLevel = 1 }
+        val v = (v2 - (v1 * v2)).apply { indentLevel = 1 } - (v3*v4).apply { indentLevel = 1 }
+
+     //   println(v.byId(10))
 
         println(v.update(mapOf(21 to 100.0, 22 to 300.0)))
 
-        v.apply { indentLevel = 1 }.toXl("data.xlsx")
+      //  v.apply { indentLevel = 1 }.toXl("data.xlsx")
 
+    }
+
+    @Test
+    fun trail1(){
+        println(ExcelUtil.DataFormat.PERCENTAGE.stringFormat(0.231))
     }
 }
