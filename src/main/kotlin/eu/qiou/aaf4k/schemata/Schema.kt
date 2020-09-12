@@ -1,3 +1,6 @@
 package eu.qiou.aaf4k.schemata
 
-data class Schema(val desc:String, val value:String, val indentLevel: Int)
+import eu.qiou.aaf4k.util.io.ExcelUtil
+
+data class Schema(val desc:String, val value:Any, val indentLevel: Int = 0,
+                  val format: ExcelUtil.DataFormat = ExcelUtil.DataFormat.DEFAULT, val formula:String?=null)

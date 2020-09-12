@@ -67,6 +67,31 @@ open class Template(
                 .fillLong(theme.light)
                 .build()
         }
+
+        fun parseFormula(c: Cell, formulaString: String, orientation: String = "H", offsetColumn : Int = 0, offsetRow : Int = 0): String {
+            val relativeReg = """\[\s*(-?\d+)\s*]""".toRegex()
+            val absoluteReg = """\(\s*(\d+)\s*\)""".toRegex()
+
+
+            if (orientation == "H" || orientation == "h"){
+                return formulaString.replace(relativeReg) {
+                    val v = it.groups[1]!!.value.toInt()
+                    "${CellUtil.getCell(c.row, c.columnIndex + v + offsetColumn).address}"
+                }.replace(absoluteReg) {
+                    val v = it.groups[1]!!.value.toInt()
+                    "${CellUtil.getCell(c.row, v - 1 + offsetColumn).address}"
+                }
+            }
+
+            return formulaString.replace(relativeReg) {
+                val v = it.groups[1]!!.value.toInt()
+                "${CellUtil.getCell(CellUtil.getRow(c.rowIndex + offsetRow + v, c.sheet), c.columnIndex + offsetColumn).address}"
+            }.replace(absoluteReg) {
+                val v = it.groups[1]!!.value.toInt()
+                "${CellUtil.getCell(CellUtil.getRow(offsetRow + v - 1, c.sheet), c.columnIndex + offsetColumn).address}"
+            }
+
+        }
     }
 
     fun build(path: String, sheetName: String = "Overview", top: Int = 0, left: Int = 0) {
@@ -241,18 +266,5 @@ open class Template(
                 }
             }
         })
-    }
-
-    private fun parseFormula(c: Cell, formulaString: String): String {
-        val relativeReg = """\[\s*(-?\d+)\s*]""".toRegex()
-        val absoluteReg = """\(\s*(\d+)\s*\)""".toRegex()
-
-        return formulaString.replace(relativeReg) {
-            val v = it.groups[1]!!.value.toInt()
-            "${CellUtil.getCell(c.row, c.columnIndex + v).address}"
-        }.replace(absoluteReg) {
-            val v = it.groups[1]!!.value.toInt()
-            "${CellUtil.getCell(c.row, v - 1).address}"
-        }
     }
 }

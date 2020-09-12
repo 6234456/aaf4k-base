@@ -1,6 +1,7 @@
 package eu.qiou.aaf4k.schemata
 
 import eu.qiou.aaf4k.util.io.ExcelUtil
+import eu.qiou.aaf4k.util.template.Template
 
 
 class Expression(val operator: Operator, val left: Value, val right: Value) :
@@ -12,13 +13,24 @@ class Expression(val operator: Operator, val left: Value, val right: Value) :
                 it.createRow(index).let {
                     x ->
                         x.createCell(0).setCellValue(pair.desc)
-                        x.createCell(2 + pair.indentLevel).setCellValue(pair.value)
+                        x.createCell(2 + pair.indentLevel).apply {
+                            if (pair.formula != null)
+                                ExcelUtil.Update(this).dataFormat(pair.format.format).formula(
+                                    Template.parseFormula(this, pair.formula,
+                                        "V", offsetColumn = pair.indentLevel * -1 )
+                                )
+                            else
+                                ExcelUtil.Update(this).dataFormat(pair.format.format).value(pair.value)
+                        }
                 }
             }
         })
     }
 
-    fun toVariable(id: Int, desc: String = this.desc, source: Source? = this.source):Variable{
-        return Variable(id, desc, this.value, source)
+    fun formula():String{
+        return when(right){
+            is Expression -> "[-${1+right.width()}]"
+            else -> "[-2]"
+        } + "${operator.sign()}[-1]"
     }
 }

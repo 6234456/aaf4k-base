@@ -35,8 +35,17 @@ abstract class Value(val id: Int, var value: Double, val desc: String = "", val 
         return when (this) {
             is Expression -> this.left.toSchema() + this.right.toSchema()
             else -> listOf()
-        } + listOf(Schema("${this.desc}${if (this.source == null) "" else "\n${this.source}"}",
-            "${this.value}", indentLevel))
+        } + listOf(Schema("${this.desc}${if (this.source == null) "" else "\n${this.source}"}", value = this.value,
+            indentLevel = indentLevel, format = this.format,
+            formula = if (this is Expression) this.formula() else null
+            ))
+    }
+
+    fun width():Int{
+        return when(this){
+            is Expression ->  this.right.width() + this.left.width() + 1
+            else -> 1
+        }
     }
 
     fun update(dict: Map<Int, Double>): Value {
@@ -55,5 +64,4 @@ abstract class Value(val id: Int, var value: Double, val desc: String = "", val 
             }
         }
     }
-
 }

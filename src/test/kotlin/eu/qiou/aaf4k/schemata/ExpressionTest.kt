@@ -1,6 +1,7 @@
 package eu.qiou.aaf4k.schemata
 
 import eu.qiou.aaf4k.util.io.ExcelUtil
+import eu.qiou.aaf4k.util.template.Template
 import org.junit.Test
 
 class ExpressionTest {
@@ -23,13 +24,13 @@ class ExpressionTest {
             Source("EStG", "§ 3c Abs. 2"), ExcelUtil.DataFormat.PERCENTAGE
         )
 
-        val v = (v2 - (v1 * v2)).apply { indentLevel = 1 } - (v3*v4).apply { indentLevel = 1 }
+        val v = (v2 - (v1 * v2)).apply { indentLevel = 0 } - (v3*v4).apply { indentLevel = 0 }
 
      //   println(v.byId(10))
 
         println(v.update(mapOf(21 to 100.0, 22 to 300.0)))
 
-      //  v.apply { indentLevel = 1 }.toXl("data.xlsx")
+        (v.update(mapOf(21 to 100.0, 22 to 300.0)).apply { indentLevel = 1 } as Expression).toXl("data.xlsx")
 
     }
 
