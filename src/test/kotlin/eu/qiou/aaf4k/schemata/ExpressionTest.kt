@@ -1,7 +1,6 @@
 package eu.qiou.aaf4k.schemata
 
 import eu.qiou.aaf4k.util.io.ExcelUtil
-import eu.qiou.aaf4k.util.template.Template
 import org.junit.Test
 
 class ExpressionTest {
