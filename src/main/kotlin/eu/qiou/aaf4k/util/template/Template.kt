@@ -68,6 +68,8 @@ open class Template(
                 .build()
         }
 
+        // [1] + [2]   relative reference
+        // (1) + (2)   absolute reference
         fun parseFormula(c: Cell, formulaString: String, orientation: String = "H", offsetColumn : Int = 0, offsetRow : Int = 0): String {
             val relativeReg = """\[\s*(-?\d+)\s*]""".toRegex()
             val absoluteReg = """\(\s*(\d+)\s*\)""".toRegex()
@@ -90,12 +92,33 @@ open class Template(
                 val v = it.groups[1]!!.value.toInt()
                 "${CellUtil.getCell(CellUtil.getRow(offsetRow + v - 1, c.sheet), c.columnIndex + offsetColumn).address}"
             }
+        }
+
+
+        // R[1]C[1]   relative reference
+        // R1C2       absolute reference
+        fun R1C1(cell: Cell, formula: String): String {
+            val relativeReg = """R(\[\s*(-?\d+)\s*])?C(\[\s*(-?\d+)\s*])?""".toRegex()
+            val absoluteReg = """R(\s*(-?\d+)\s*)?C(\s*(-?\d+)\s*)?""".toRegex()
+
+            return formula.replace(relativeReg) {
+                val r = it.groups[2]?.value?.toInt() ?: 0
+                val c = it.groups[4]?.value?.toInt() ?: 0
+
+                "${CellUtil.getCell(CellUtil.getRow(cell.rowIndex + r, cell.sheet), cell.columnIndex + c).address}"
+
+            }.replace(absoluteReg) {
+                val r = it.groups[1]?.value?.toInt() ?: 0
+                val c = it.groups[3]?.value?.toInt() ?: 0
+
+                "${CellUtil.getCell(CellUtil.getRow(cell.rowIndex + r, cell.sheet), cell.columnIndex + c).address}"
+            }
 
         }
     }
 
     fun build(path: String, sheetName: String = "Overview", top: Int = 0, left: Int = 0) {
-        val cols = headings.size ?: data[0].count()
+        val cols = headings.size
         val headingHeight = 45f
         val rowHeight = 20f
         val captionHeight = 30f
@@ -190,7 +213,7 @@ open class Template(
                     this.heightInPoints = rowHeight
 
                     // transform the Map into List, the values
-                    val v = orderedHeadings.map { k -> v0.getOrDefault(k, "") } ?: (v0.values)
+                    val v = orderedHeadings.map { k -> v0.getOrDefault(k, "") }
 
                     v.forEachIndexed { index, d ->
                         with(this.createCell(index + colStart)) {

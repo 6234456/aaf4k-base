@@ -2,20 +2,21 @@ package eu.qiou.aaf4k.schemata
 
 import eu.qiou.aaf4k.util.io.ExcelUtil
 
-abstract class Value(val id: Int, var value: Double, val desc: String = "", val source: Source?, val format: ExcelUtil.DataFormat = ExcelUtil.DataFormat.NUMBER) {
-    // set the indent level by display
-    var indentLevel: Int = 0
+abstract class Value(
+    val id: Int, var value: Double, val desc: String = "", val source: Source?,
+    val format: ExcelUtil.DataFormat = ExcelUtil.DataFormat.NUMBER, var indentLevel: Int = 0
+) {
 
     operator fun plus(value: Value): Expression {
-        return Expression(Add, this, value)
+        return Expression(Add, this, value, this.indentLevel)
     }
 
     operator fun minus(value: Value): Expression {
-        return Expression(Minus, this, value)
+        return Expression(Minus, this, value, this.indentLevel)
     }
 
     operator fun times(value: Value): Expression {
-        return Expression(Multiply, this, value)
+        return Expression(Multiply, this, value, this.indentLevel)
     }
 
     fun byId(id: Int):Value? {
@@ -50,12 +51,12 @@ abstract class Value(val id: Int, var value: Double, val desc: String = "", val 
 
     fun update(dict: Map<Int, Double>): Value {
         return if (this is Expression) {
-            Expression(operator, left.update(dict), right.update(dict))
+            Expression(operator, left.update(dict), right.update(dict), this.indentLevel)
         } else {
             if (dict.containsKey(id)) {
                 when (this) {
-                    is Variable -> Variable(id, desc, dict[id] ?: error(""), source)
-                    is Constant -> Constant(id, desc, dict[id] ?: error(""), source)
+                    is Variable -> Variable(id, desc, dict[id] ?: error(""), source, format, indentLevel)
+                    is Constant -> Constant(id, desc, dict[id] ?: error(""), source, format, indentLevel)
                     is Expression -> throw Exception("")
                     else -> throw Exception("Error")
                 }
