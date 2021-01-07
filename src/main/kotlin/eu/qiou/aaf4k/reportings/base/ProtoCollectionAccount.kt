@@ -106,7 +106,7 @@ interface ProtoCollectionAccount : ProtoAccount, Drilldownable<ProtoCollectionAc
     }
 
     override fun copyWith(value: Double, decimalPrecision: Int): ProtoAccount {
-        throw Exception("Applicable only to the atomic accounts.")
+        throw Exception("copy applicable only to the atomic accounts: Please check ${this.id} ${this.name}")
     }
 
     override fun nullify(): ProtoAccount {
