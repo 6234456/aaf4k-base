@@ -12,6 +12,7 @@ import eu.qiou.aaf4k.util.strings.times
 import eu.qiou.aaf4k.util.template.Template
 import eu.qiou.aaf4k.util.time.TimeParameters
 import eu.qiou.aaf4k.util.unit.CurrencyUnit
+import eu.qiou.aaf4k.util.unit.ForeignExchange
 import org.apache.poi.ss.usermodel.*
 import org.apache.poi.ss.util.CellUtil
 import java.util.*
@@ -95,10 +96,10 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
     }
 
     // keep all the first level child even with a null value
-    fun shorten(): Reporting {
+    fun shorten(keep: Collection<Long> = setOf()): Reporting {
         val whiteList = categories.fold(sortedList()) { acc, protoCategory ->
             acc + protoCategory.flatten(true)
-        }.filter { it.value != 0L }.map { it.id }.toSet()
+        }.filter { it.value != 0L }.map { it.id }.toSet() + keep
 
         return Reporting(this.core.shorten(whiteList = whiteList) as ProtoCollectionAccount).apply {
             this@Reporting.categories.forEach { it.deepCopy(this) }
@@ -199,9 +200,47 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
         }
     }
 
-    fun fx(targetCurrency: CurrencyUnit) {
-        if (reclAdjCategoriesAdded && this.unit != targetCurrency) {
-            //TODO
+    fun fx(
+        sourceCurrency: CurrencyUnit, targetCurrency: CurrencyUnit,
+        timeParameters: TimeParameters, accountIdFXDiff: Long, override: Map<Long, Double> = mapOf()
+    ): Reporting {
+        val endTimeParameters = TimeParameters(timeParameters.end)
+
+        return generate(true).map {
+            val time = when (it.reportingType.fx) {
+                ReportingTranslateFX.BALANCE_SHEET_DATE -> endTimeParameters
+                else -> timeParameters
+            }
+
+            if (override.containsKey(it.id)) {
+                when (it) {
+                    is Account -> it.copy(unit = targetCurrency, displayUnit = targetCurrency, timeParameters = time)
+                        .copyWith(override[it.id]!!) as Account
+                    else -> throw Exception("Only the atomic account can be overriden. Check $it .")
+                }
+
+            } else
+
+                when (it) {
+                    is Account -> it.copy(
+                        unit = sourceCurrency,
+                        displayUnit = targetCurrency,
+                        timeParameters = time
+                    ).let {
+                        (it.copyWith(it.displayValue) as Account).copy(unit = targetCurrency)
+                    }
+                    is CollectionAccount -> it.copy(
+                        unit = targetCurrency,
+                        displayUnit = targetCurrency,
+                        timeParameters = time
+                    )
+                    else -> throw Exception("")
+                }
+        }.let {
+
+            val tmpValue = -1 * it.flatten().fold(0.0) { acc, d -> acc + d.displayValue }
+            it.replace(it.search(accountIdFXDiff)!!.copyWith(tmpValue))
+            Reporting(it)
         }
     }
 
@@ -252,7 +291,11 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
              shtNameOverview: String = "src",
              shtNameAdjustment: String = "adj",
              components: Map<Entity, Reporting>? = null,
-             chronoData: Map<TimeParameters, Map<Long, Double>>? = null
+             chronoData: Map<TimeParameters, Map<Long, Double>>? = null,
+             accountIdFXDiff: Long? = null,
+             sourceCurrency: CurrencyUnit = GlobalConfiguration.DEFAULT_CURRENCY_UNIT,
+             targetCurrency: CurrencyUnit = GlobalConfiguration.DEFAULT_CURRENCY_UNIT,
+             timeParameters: TimeParameters = this.timeParameters, override: Map<Long, Double> = mapOf()
     ): Pair<Sheet, Map<Long, String>> {
 
         // i18n of the titles
@@ -262,6 +305,7 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
         val titleName: String = msg.getString("accountName")
         val titleOriginal: String = msg.getString("balanceBeforeAdj")
         val titleFinal: String = msg.getString("balanceAfterAdj")
+        val titleFX: String = msg.getString("amount")
         val prefixStatistical = " ${msg.getString("thereOf")}: "
 
         val categoryID = msg.getString("categoryId")
@@ -303,6 +347,21 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
 
         var res1: Pair<Sheet, Map<Long, String>>? = null
 
+        // add column fx
+        val colFX = if (accountIdFXDiff == null) null else colLast + 1
+
+        val override1 = if (accountIdFXDiff != null) {
+            override + (accountIdFXDiff to this@Reporting.fx(
+                sourceCurrency,
+                targetCurrency,
+                timeParameters,
+                accountIdFXDiff,
+                override
+            ).search(accountIdFXDiff)!!.decimalValue)
+        } else override
+
+
+
         fun writeAccountToXl(account: ProtoAccount, sht: Sheet, indent: Int = 0) {
 
             // the total account and subaccounts, the total number of the rows
@@ -322,25 +381,45 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
                     // for Collection Account
                     if (lvl == 2) {
                         // which only contains the atomic account
-                        colOriginal.until(colLast).forEach {
+                        colOriginal.until(if (colFX == null) colLast else colFX + 1).forEach {
                             // with components and current column is not the sum column
                             // without components
-                            if (chronoData != null && it == chronoData.size + colOriginal) {
+                            if (it != colLast) {
+                                if (chronoData != null && it == chronoData.size + colOriginal) {
 
-                            } else {
-                                if (colSumOriginal == null || colSumOriginal != it) {
-                                    createCell(it).cellFormula =
-                                        "SUM(${CellUtil.getCell(CellUtil.getRow(this.rowNum + 1, sht), it).address}:" +
-                                                "${CellUtil.getCell(
-                                                    CellUtil.getRow(this.rowNum + l - 1, sht),
-                                                    it
-                                                ).address}" +
-                                                ")"
                                 } else {
-                                    // with components
-                                    // sum up the range from column of the value before adj to previous column
-                                    createCell(it).cellFormula = "SUM(${getCell(colOriginal).address}:${(getCell(it - 1)
-                                        ?: createCell(it - 1)).address})"
+                                    if (colFX != null && it == colFX) {
+                                        createCell(it).cellFormula =
+                                            "SUM(${CellUtil.getCell(
+                                                CellUtil.getRow(this.rowNum + 1, sht),
+                                                it
+                                            ).address}:" +
+                                                    "${CellUtil.getCell(
+                                                        CellUtil.getRow(this.rowNum + l - 1, sht),
+                                                        it
+                                                    ).address}" +
+                                                    ")"
+
+                                    } else {
+                                        if (colSumOriginal == null || colSumOriginal != it) {
+                                            createCell(it).cellFormula =
+                                                "SUM(${CellUtil.getCell(
+                                                    CellUtil.getRow(this.rowNum + 1, sht),
+                                                    it
+                                                ).address}:" +
+                                                        "${CellUtil.getCell(
+                                                            CellUtil.getRow(this.rowNum + l - 1, sht),
+                                                            it
+                                                        ).address}" +
+                                                        ")"
+                                        } else {
+                                            // with components
+                                            // sum up the range from column of the value before adj to previous column
+                                            createCell(it).cellFormula =
+                                                "SUM(${getCell(colOriginal).address}:${(getCell(it - 1)
+                                                    ?: createCell(it - 1)).address})"
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -352,7 +431,7 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
                             a + if (protoAccount is ProtoCollectionAccount) protoAccount.countRecursively(true) else 1
                         }.dropLast(1).zip(account.subAccounts.map { !it.isStatistical })
 
-                        colOriginal.until(colLast).forEach { x ->
+                        colOriginal.until(if (colFX == null) colLast else colFX + 1).forEach { x ->
                             if (chronoData != null && x == chronoData.size + colOriginal) {
 
                             } else {
@@ -370,13 +449,32 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
                 } else {
                     // set value of the atomic account
 
-                    if (chronoData == null)
+                    if (chronoData == null) {
                         createCell(colOriginal).setCellValue(account.displayValue)
+                    }
                     else {
                         var cnt0 = colOriginal
                         chronoData.forEach { (_, u) ->
                             createCell(cnt0++).setCellValue(u[account.id] ?: 0.0)
                         }
+                    }
+
+                    if (colFX != null) {
+                        createCell(colFX).cellFormula = "ROUND(" +
+                                if (override1.containsKey(account.id)) {
+                                    "${override1[account.id]!!}"
+                                } else {
+                                    val time = when (account.reportingType.fx) {
+                                        ReportingTranslateFX.BALANCE_SHEET_DATE -> TimeParameters(timeParameters.end)
+                                        else -> timeParameters
+                                    }
+                                    val fxRate =
+                                        ForeignExchange(targetCurrency.currency, sourceCurrency.currency, time).fetch(
+                                            forceRefresh = false
+                                        )
+
+                                    "${CellUtil.getCell(this, colFX - 1).address}/$fxRate"
+                                } + ", ${account.decimalPrecision})"
                     }
                 }
 
@@ -397,7 +495,8 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
                 }
 
                 // format the content range
-                colId.until(colLast + 1 + if (chronoData != null) -2 else 0).forEach { i ->
+                colId.until(colLast + 1 + (if (chronoData != null) -2 else 0) + (if (colFX != null) 1 else 0))
+                    .forEach { i ->
                     val c = getCell(i) ?: createCell(i, CellType.NUMERIC)
 
                     if (rowNum >= 3) {
@@ -480,6 +579,11 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
                 // set the total sum column, if chronoData not defined
                 if (chronoData == null) {
                     createCell(colLast).setCellValue(titleFinal)
+                }
+
+                // set the total sum column, if chronoData not defined
+                if (colFX != null) {
+                    createCell(colFX).setCellValue(titleFX)
                 }
             }
 

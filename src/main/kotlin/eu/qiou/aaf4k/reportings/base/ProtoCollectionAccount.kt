@@ -44,6 +44,7 @@ interface ProtoCollectionAccount : ProtoAccount, Drilldownable<ProtoCollectionAc
 
     /**
      *  recursively replace all the target account
+     *  cannot be the first level account ARAP in HGB
      */
     fun replace(target: ProtoAccount, newAccount: ProtoAccount, updateStructure: Boolean = true) {
         target.superAccounts.filterMapInPlace({ _, _ -> true }) { sup ->

@@ -65,23 +65,33 @@ data class Account(override val id: Long, override val name: String,
  *   While as AUTO, it will reclassified to be display in positive value.
  */
 
-enum class ReportingType(val sign: Int, val code: String) {
+enum class ReportingType(
+    val sign: Int,
+    val code: String,
+    val fx: ReportingTranslateFX = ReportingTranslateFX.BALANCE_SHEET_DATE
+) {
     ASSET(1, "AS"),
     ASSET_SHORT_TERM(1, "AK"),
     ASSET_LONG_TERM(1, "AL"),
-    EQUITY(-1, "EQ"),
+    EQUITY(-1, "EQ", ReportingTranslateFX.HISTORY),
     LIABILITY(-1, "LB"),
     LIABILITY_SHORT_TERM(-1, "LK"),
     LIABILITY_LONG_TERM(-1, "LL"),
-    REVENUE_GAIN(-1, "RV"),
-    EXPENSE_LOSS(1, "EP"),
-    PROFIT_LOSS_NEUTRAL(-1, "NT"),
-    PROFIT_LOSS_NEUTRAL_BALANCE(-1, "OC"),
-    RESULT_BALANCE(-1, "RE"),
-    RETAINED_EARNINGS_BEGINNING(-1, "RT"),
+    REVENUE_GAIN(-1, "RV", ReportingTranslateFX.AVERAGE),
+    EXPENSE_LOSS(1, "EP", ReportingTranslateFX.AVERAGE),
+    PROFIT_LOSS_NEUTRAL(-1, "NT", ReportingTranslateFX.AVERAGE),
+    PROFIT_LOSS_NEUTRAL_BALANCE(-1, "OC", ReportingTranslateFX.HISTORY),
+    RESULT_BALANCE(-1, "RE", ReportingTranslateFX.AVERAGE),
+    RETAINED_EARNINGS_BEGINNING(-1, "RT", ReportingTranslateFX.HISTORY),
     DIFF_CONS_RECEIVABLE_PAYABLE(1, "KP"),
-    DIFF_CONS_REVENUE_EXPENSE(-1, "KR"),
+    DIFF_CONS_REVENUE_EXPENSE(-1, "KR", ReportingTranslateFX.AVERAGE),
     AUTO(0, "NN")
+}
+
+enum class ReportingTranslateFX {
+    BALANCE_SHEET_DATE,
+    AVERAGE,
+    HISTORY
 }
 
 

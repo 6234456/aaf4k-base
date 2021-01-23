@@ -37,10 +37,27 @@ data class ForeignExchange(val functionalCurrency: Currency = DEFAULT_FUNCTIONAL
     }
 
     fun fetch(src: FxProvider = source, forceRefresh: Boolean = ForeignExchange.forceRefresh): Double {
+
         if (functionalCurrency == reportingCurrency) {
             displayRate = 1.0
             return 1.0
         }
+
+
+        for (t in override.keys) {
+            if (timeParameters == t.timeParameters) {
+                if (t.functionalCurrency == this.functionalCurrency && t.reportingCurrency == this.reportingCurrency) {
+                    displayRate = override[t]!!
+                    return override[t]!!
+                }
+
+                if (t.functionalCurrency == this.reportingCurrency && t.reportingCurrency == this.functionalCurrency) {
+                    displayRate = 1.0 / override[t]!!
+                    return 1.0 / override[t]!!
+                }
+            }
+        }
+
 
         return FxUtil.fetch(this, source = src, useCache = !forceRefresh)
     }
@@ -53,6 +70,7 @@ data class ForeignExchange(val functionalCurrency: Currency = DEFAULT_FUNCTIONAL
         var autoFetch = true
         var forceRefresh = false
         var source: FxProvider = ECBFxProvider
+        var override: Map<ForeignExchange, Double> = mapOf()
     }
 }
 
