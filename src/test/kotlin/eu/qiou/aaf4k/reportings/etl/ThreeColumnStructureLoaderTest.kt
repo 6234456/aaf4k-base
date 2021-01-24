@@ -22,6 +22,7 @@ class ThreeColumnStructureLoaderTest {
         .inflate(
             10004L, "SKR4",
             this.javaClass.classLoader.getResourceAsStream("data/de/de_hgbCN_2021.txt"),
+            // this.javaClass.classLoader.getResourceAsStream("data/de/de_hgb_2018.txt"),
             unit = CurrencyUnit("EUR", 2), decimalPrecision = 2,
             displayUnit = CurrencyUnit("EUR", 2),
             timeParameters = TimeParameters.forYear(2020)

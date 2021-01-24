@@ -478,15 +478,17 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
                     }
                 }
 
-                when {
-                    components != null -> createCell(colCategoryBegin - 1).cellFormula =
+                // add the sum up col
+                if (components != null) {
+                    createCell(colCategoryBegin - 1).cellFormula =
                         "SUM(${(getCell(colCategoryBegin - 2)
                             ?: createCell(colCategoryBegin - 2)).address}:${(getCell(colOriginal)
                             ?: createCell(colOriginal)).address})"
-                    chronoData != null -> {
+                }
 
-                    }
-                    else -> createCell(colLast).cellFormula = "SUM(${
+                // add up Chrono Data makes no sense
+                if (chronoData == null) {
+                    createCell(colLast).cellFormula = "SUM(${
                     (getCell(colSumOriginal ?: colOriginal) ?: createCell(
                         colSumOriginal
                             ?: colOriginal
@@ -704,7 +706,7 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
 
                 sht.rowIterator().forEach { x ->
                     if (x.rowNum > 1) {
-                        val c = x.getCell(colLast)
+                        val c = x.getCell(colLast + if (colFX != null) 1 else 0)
                         res[x.getCell(colId).stringCellValue.toLong()] = "'${sht.sheetName}'!${c.address}"
                     }
                 }
