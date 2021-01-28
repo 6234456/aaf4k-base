@@ -9,7 +9,8 @@ import eu.qiou.aaf4k.util.unit.CurrencyUnit
 import org.junit.Test
 
 class ThreeColumnStructureLoaderTest {
-    val loader = ThreeColumnStructureLoader("Consolidation_2020.xlsx", sep = " ")
+    val loader = ThreeColumnStructureLoader("Consolidation_2020.xlsx", sep = " ", sheetName = "mapping")
+    val loader_ifrs = ThreeColumnStructureLoader("Consolidation_2020.xlsx", sep = " ", sheetName = "ifrs")
     val de2019 =
         ExcelDataLoader("Consolidation_2020.xlsx", keyCol = 1, valCol = 3, sheetName = "DE", hasHeading = false)
     val de2020 =
@@ -28,6 +29,23 @@ class ThreeColumnStructureLoaderTest {
             timeParameters = TimeParameters.forYear(2020)
         )
         .toReporting()
+    val ifrs = AccountingFrame
+        .inflate(
+            10006L, "CAS",
+            this.javaClass.classLoader.getResourceAsStream("data/cn/cn_cas_2018.txt"),
+            // this.javaClass.classLoader.getResourceAsStream("data/de/de_hgb_2018.txt"),
+            unit = CurrencyUnit("EUR", 2), decimalPrecision = 2,
+            displayUnit = CurrencyUnit("EUR", 2),
+            timeParameters = TimeParameters.forYear(2020)
+        )
+        .toReporting()
+
+    @Test
+    fun trail2() {
+        println(loader_ifrs.load())
+
+        //ifrs.mountStructure(loader_ifrs)
+    }
 
     @Test
     fun load() {

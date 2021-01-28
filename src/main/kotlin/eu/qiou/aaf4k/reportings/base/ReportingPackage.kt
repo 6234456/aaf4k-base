@@ -4,6 +4,7 @@ import eu.qiou.aaf4k.util.io.ExcelUtil
 import eu.qiou.aaf4k.util.template.Template
 import eu.qiou.aaf4k.util.time.TimeParameters
 import eu.qiou.aaf4k.util.unit.CurrencyUnit
+import org.apache.poi.ss.usermodel.Sheet
 import java.util.*
 
 class ReportingPackage(
@@ -20,13 +21,15 @@ class ReportingPackage(
         accountIdFXDiff: Long? = null,
         targetCurrency: CurrencyUnit = cover.unit as CurrencyUnit,
         timeParameters: TimeParameters = cover.timeParameters, override: Map<Long, Double> = mapOf()
-    ) {
+    ): Pair<Sheet, Map<Long, String>> {
         val colStart = 2
         var cnt = 0
 
+        // key: TargetCol in the overview-sht
+        // value: dict with address
         val data: MutableMap<Int, Map<Long, String>> = mutableMapOf()
 
-        cover.toXl(path, t, locale, shtNameOverview, shtNameAdjustments, components)
+        val res = cover.toXl(path, t, locale, shtNameOverview, shtNameAdjustments, components)
 
         components.forEach { (k, v) ->
             val overview = "${String.format("%03d", k.id)}_${k.abbreviation}_$shtNameOverview"
@@ -52,5 +55,7 @@ class ReportingPackage(
         }
 
         ExcelUtil.saveWorkbook(path, sht.workbook)
+
+        return res
     }
 }

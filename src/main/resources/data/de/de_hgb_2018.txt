@@ -1,4 +1,4 @@
-0#Bilanz#AL
+51#Aktiva#AL
     1#Anlagevermögen#AL
         11#Immaterielle Vermögensgegenstände
             111#Selbst geschaffene gewerbliche Schutzrechte und ähnliche Rechte und Werte
@@ -35,6 +35,8 @@
     3#Rechnungsabgrenzungsposten#AS
     4#Aktive latente Steuern#AL
     5#Aktiver Unterschiedsbetrag aus der Vermögensverrechnung#AS
+
+52#Passiva#LB
     6#Eigenkapital#EQ
         61#Gezeichnetes Kapital
         62#Kapitalrücklage
@@ -64,31 +66,53 @@
     9#Rechnungsabgrenzungsposten#LB
     10#Passive latente Steuern#LB
 
-100#Jahresüberschuss/Jahresfehlbetrag#RV
-    1001#sonstige Steuern#EP
-    1002#Ergebnis nach Steuern
-        1003#Umsatzerlöse
-        1004#Erhöhung oder Verminderung des Bestands an fertigen und unfertigen Erzeugnissen
-        1005#andere aktivierte Eigenleistungen
-        1006#sonstige betriebliche Erträge
-        1007#Materialaufwand#EP
-            10071#Aufwendungen für Roh-, Hilfs- und Betriebsstoffe und für bezogene Waren
-            10072#Aufwendungen für bezogene Leistungen
-        1008#Personalaufwand#EP
-            10081#Löhne und Gehälter
-            10082#soziale Abgaben und Aufwendungen für Altersversorgung und für Unterstützung
-            [10083#davon für Altersversorgung
-        1009#Abschreibungen#EP
-            10091#auf immaterielle Vermögensgegenstände des Anlagevermögens und Sachanlagen
-            10092#auf Vermögensgegenstände des Umlaufvermögens, soweit diese die in der Kapitalgesellschaft üblichen Abschreibungen überschreiten
-        1010#sonstige betriebliche Aufwendungen#EP
-        1011#Erträge aus Beteiligungen
-        [1012#davon aus verbundenen Unternehmen
-        1013#Erträge aus anderen Wertpapieren und Ausleihungen des Finanzanlagevermögens
-        [1014#davon aus verbundenen Unternehmen
-        1015#sonstige Zinsen und ähnliche Erträge
-        [1016#davon aus verbundenen Unternehmen
-        1017#Abschreibungen auf Finanzanlagen und auf Wertpapiere des Umlaufvermögens#EP
-        1018#Zinsen und ähnliche Aufwendungen#EP
-        [1019#davon an verbundene Unternehmen#EP
-        1020#Steuern vom Einkommen und vom Ertrag#EP
+    100#Jahresüberschuss/Jahresfehlbetrag#RV
+        1002#Ergebnis nach Steuern
+            1003#Umsatzerlöse
+            1004#Erhöhung oder Verminderung des Bestands an fertigen und unfertigen Erzeugnissen
+            1005#andere aktivierte Eigenleistungen
+            1006#sonstige betriebliche Erträge
+            1007#Materialaufwand#EP
+                10071#Aufwendungen für Roh-, Hilfs- und Betriebsstoffe und für bezogene Waren
+                10072#Aufwendungen für bezogene Leistungen
+            1008#Personalaufwand#EP
+                10081#Löhne und Gehälter
+                10082#soziale Abgaben und Aufwendungen für Altersversorgung und für Unterstützung
+                [10083#davon für Altersversorgung
+            1009#Abschreibungen#EP
+                10091#auf immaterielle Vermögensgegenstände des Anlagevermögens und Sachanlagen
+                10092#auf Vermögensgegenstände des Umlaufvermögens, soweit diese die in der Kapitalgesellschaft üblichen Abschreibungen überschreiten
+            1010#sonstige betriebliche Aufwendungen#EP
+                101001#Reisekosten
+                101002#Bewirtungskosten
+                101003#Miete
+                101004#Porto, Tel
+                101005#Instandhaltung
+                101006#sonstige Bürokosten
+                101007#Fracht- und Verpackungskosten
+                101008#Versicherungen und Beiträge
+                101009#Rechts- und Beratungskosten
+                101010#Jahresabschluss
+                101011#Buchführung
+                101012#Fuhrpark
+                101013#Währungsumrechnung
+                101014#Wertberichtigung
+                101015#HR und Headhunter
+                101016#freiwillige Personalkosten
+                101017#Bankgebühr
+                101018#Sonstige Service-und Beratungskosten
+                101019#Werbung und Messe
+                101020#Forschung
+                101021#Produktgarantie
+                101099#sonstige Kosten
+            1011#Erträge aus Beteiligungen
+            [1012#davon aus verbundenen Unternehmen
+            1013#Erträge aus anderen Wertpapieren und Ausleihungen des Finanzanlagevermögens
+            [1014#davon aus verbundenen Unternehmen
+            1015#sonstige Zinsen und ähnliche Erträge
+            [1016#davon aus verbundenen Unternehmen
+            1017#Abschreibungen auf Finanzanlagen und auf Wertpapiere des Umlaufvermögens#EP
+            1018#Zinsen und ähnliche Aufwendungen#EP
+            [1019#davon an verbundene Unternehmen#EP
+            1020#Steuern vom Einkommen und vom Ertrag#EP
+        1001#sonstige Steuern#EP

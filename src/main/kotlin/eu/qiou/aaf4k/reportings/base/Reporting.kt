@@ -119,6 +119,56 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
         }
     }
 
+    fun copy(): Reporting {
+        return this.deepCopy() as Reporting
+    }
+
+
+    /**
+     * @param loader provide the last two level structure
+     * @param id    change the id of accounting frame to avoid conflict with the accounts import
+     * @return the deep copy of this Reporting with atomic account structure mounted
+     *
+     */
+
+    fun mountStructure(
+        loader: eu.qiou.aaf4k.reportings.etl.StructureLoader,
+        id: (ProtoAccount) -> Long = { it.id + 9000000 }
+    ): Reporting {
+        val reporting0 = this.copy()
+
+        reporting0.map {
+            when (it) {
+                is Account -> it.copy(id = id(it))
+                is CollectionAccount -> it.copy(id = id(it))
+                else -> throw Exception("")
+            }
+        }
+
+        val tmp = reporting0.copy()
+        // mount the two level accounts to the structure by replace in place
+        loader.load().forEach { account ->
+            reporting0.replace(account)
+        }
+
+        // unify the name of the loaded accounts based on the accounting frame
+        reporting0.map {
+            when (it) {
+                is Account -> it.copy(
+                    name = tmp.search(it.id)?.name ?: it.name,
+                    timeParameters = TimeParameters.forYear(2020)
+                )
+                is CollectionAccount -> it.copy(
+                    name = tmp.search(it.id)?.name ?: it.name,
+                    timeParameters = TimeParameters.forYear(2020)
+                )
+                else -> throw Exception("")
+            }
+        }
+
+        return reporting0
+    }
+
     /**
      * after update through the categories
      * get the reporting
