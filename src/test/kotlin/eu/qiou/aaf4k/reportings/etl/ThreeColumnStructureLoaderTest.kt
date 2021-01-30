@@ -9,6 +9,7 @@ import eu.qiou.aaf4k.util.unit.CurrencyUnit
 import org.junit.Test
 
 class ThreeColumnStructureLoaderTest {
+    val p = "合并底稿4.xlsx"
     val loader = ThreeColumnStructureLoader("Consolidation_2020.xlsx", sep = " ", sheetName = "mapping")
     val loader_ifrs = ThreeColumnStructureLoader("Consolidation_2020.xlsx", sep = " ", sheetName = "ifrs")
     val de2019 =

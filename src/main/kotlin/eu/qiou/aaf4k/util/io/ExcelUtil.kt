@@ -3,12 +3,14 @@ package eu.qiou.aaf4k.util.io
 import eu.qiou.aaf4k.reportings.GlobalConfiguration
 import eu.qiou.aaf4k.reportings.GlobalConfiguration.DEFAULT_FONT_NAME
 import eu.qiou.aaf4k.util.strings.times
+import org.apache.poi.hssf.usermodel.HSSFFormulaEvaluator
 import org.apache.poi.hssf.usermodel.HSSFWorkbook
 import org.apache.poi.hssf.util.HSSFColor
 import org.apache.poi.ss.usermodel.*
 import org.apache.poi.ss.util.CellUtil
 import org.apache.poi.xssf.usermodel.XSSFCellStyle
 import org.apache.poi.xssf.usermodel.XSSFColor
+import org.apache.poi.xssf.usermodel.XSSFFormulaEvaluator
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import java.io.File
 import java.io.FileInputStream
@@ -56,6 +58,15 @@ object ExcelUtil {
             HSSFWorkbook(inputStream)
         else
             XSSFWorkbook(inputStream)) to inputStream
+    }
+
+    fun refresh(wb: Workbook): Workbook {
+        if (wb is HSSFWorkbook)
+            HSSFFormulaEvaluator.evaluateAllFormulaCells(wb)
+        else
+            XSSFFormulaEvaluator.evaluateAllFormulaCells(wb)
+
+        return wb
     }
 
     fun getWorkbook(stream: FileInputStream, isXlsx: Boolean = true): Pair<Workbook, FileInputStream> {

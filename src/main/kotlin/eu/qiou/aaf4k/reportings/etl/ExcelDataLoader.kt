@@ -18,15 +18,18 @@ class ExcelDataLoader(
                 val valueCol = valCol - 1
 
 
-                if (it.getCell(idCol) != null && it.getCell(valueCol) != null) {
+                val cellKey = it.getCell(idCol)
+                val cellVal = it.getCell(valueCol)
+
+                if (cellKey != null && cellVal != null) {
                     val c1 =
-                        if (it.getCell(idCol).cellTypeEnum == CellType.STRING && it.getCell(idCol).stringCellValue.isNotBlank()) {
-                            reg2.split(it.getCell(idCol).stringCellValue, 2)[0].toLong()
+                        if (cellKey.cellTypeEnum == CellType.STRING && cellKey.stringCellValue.isNotBlank()) {
+                            reg2.split(cellKey.stringCellValue, 2)[0].toLong()
                         } else {
-                            it.getCell(idCol).numericCellValue.toLong()
+                            cellKey.numericCellValue.toLong()
                         }
                     val c2 = try {
-                        it.getCell(valueCol).numericCellValue
+                        cellVal.numericCellValue
                     } catch (e: Exception) {
                         0.0
                     }

@@ -16,7 +16,8 @@ class ExcelReportingTemplate(
         path: String,
         filter: (Sheet) -> Boolean = {
             if (shtName != null) it.sheetName == shtName else it.workbook.getSheetIndex(it) == shtIndex
-        }
+        },
+        fillFormula: Boolean = false
     ) {
         val (wb, ips) = ExcelUtil.getWorkbook(tpl)
         val d = data.map { it.key.toString() to it.value!! }.toMap()
@@ -29,10 +30,14 @@ class ExcelReportingTemplate(
                         if (it.cellTypeEnum == CellType.STRING) {
                             if (engine.containsTemplate(it.stringCellValue)) {
                                 val v = engine.compile(it.stringCellValue)(d)
-                                try {
-                                    it.setCellValue(v.toDouble())
-                                } catch (e: Exception) {
-                                    it.setCellValue(v)
+                                if (fillFormula) {
+                                    it.cellFormula = v
+                                } else {
+                                    try {
+                                        it.setCellValue(v.toDouble())
+                                    } catch (e: Exception) {
+                                        it.setCellValue(v)
+                                    }
                                 }
                             }
                         }
