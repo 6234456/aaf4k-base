@@ -48,7 +48,28 @@ object ExcelUtil {
         }
 
         throw Exception("Malformed pattern: \"$s\"")
+    }
 
+    /**
+     * @return the column number of the last column
+     */
+    fun x(sht: Sheet, row: Int = 1): Int {
+        return sht.getRow(row - 1).lastCellNum.toInt()
+    }
+
+    /**
+     * @return the column number of the last column
+     */
+    fun y(sht: Sheet, column: Int = 1): Int {
+        for (i in sht.lastRowNum downTo 0) {
+            val c = sht.getRow(i).getCell(column - 1)
+            if (c == null || c.cellTypeEnum == CellType.BLANK)
+                continue
+
+            return i + 1
+        }
+
+        return 0
     }
 
     fun getWorkbook(path: String): Pair<Workbook, FileInputStream> {
