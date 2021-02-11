@@ -148,7 +148,21 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
         val tmp = reporting0.copy()
         // mount the two level accounts to the structure by replace in place
         loader.load().forEach { account ->
-            reporting0.replace(account)
+            account as CollectionAccount
+            val tmpAccount = reporting0.findAccountByID(account.id)!!
+            reporting0.replace(tmpAccount, account.copy(
+                isStatistical = tmpAccount.isStatistical,
+                reportingType = tmpAccount.reportingType,
+                timeParameters = tmpAccount.timeParameters,
+                entity = tmpAccount.entity,
+                validateUntil = tmpAccount.validateUntil
+            ).apply {
+                account.subAccounts.forEach {
+                    it as Account
+                    add(it.copy().apply { superAccounts.clear() })
+                }
+            }
+            )
         }
 
         // unify the name of the loaded accounts based on the accounting frame
@@ -287,8 +301,7 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
                     else -> throw Exception("")
                 }
         }.let {
-
-            val tmpValue = -1 * it.flatten().fold(0.0) { acc, d -> acc + d.displayValue }
+            val tmpValue = -1 * it.decimalValue
             it.replace(it.search(accountIdFXDiff)!!.copyWith(tmpValue))
             Reporting(it)
         }

@@ -1,15 +1,8 @@
 package eu.qiou.aaf4k.reportings.etl
 
-import eu.qiou.aaf4k.reportings.base.Account
 import eu.qiou.aaf4k.reportings.base.AccountingFrame
-import eu.qiou.aaf4k.reportings.base.CollectionAccount
-import eu.qiou.aaf4k.reportings.base.Reporting
-import eu.qiou.aaf4k.util.template.ExcelReportingTemplate
-import eu.qiou.aaf4k.util.template.Template
 import eu.qiou.aaf4k.util.time.TimeParameters
 import eu.qiou.aaf4k.util.unit.CurrencyUnit
-import org.junit.Test
-import java.util.*
 
 class ExcelStructureLoaderTest {
 
@@ -25,7 +18,7 @@ class ExcelStructureLoaderTest {
             timeParameters = TimeParameters.forYear(2019)
         )
         .toReporting()
-
+/*
     @Test
     fun trial() {
         reporting2.map {
@@ -171,4 +164,6 @@ class ExcelStructureLoaderTest {
 
 
     }
+    */
+
 }
