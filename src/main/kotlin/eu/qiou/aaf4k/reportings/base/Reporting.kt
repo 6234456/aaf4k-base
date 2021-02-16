@@ -159,7 +159,12 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
             ).apply {
                 account.subAccounts.forEach {
                     it as Account
-                    add(it.copy().apply { superAccounts.clear() })
+                    // the subaccounts from the loader should have the same reporting type as the superaccount
+                    add(it.copy(
+                        reportingType = tmpAccount.reportingType,
+                        timeParameters = tmpAccount.timeParameters,
+                        entity = tmpAccount.entity
+                    ).apply { superAccounts.clear() })
                 }
             }
             )
