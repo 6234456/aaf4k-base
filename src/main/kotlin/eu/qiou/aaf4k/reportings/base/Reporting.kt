@@ -1,6 +1,7 @@
 package eu.qiou.aaf4k.reportings.base
 
 import eu.qiou.aaf4k.reportings.GlobalConfiguration
+import eu.qiou.aaf4k.reportings.GlobalConfiguration.DEFAULT_TIME_PARAMETERS
 import eu.qiou.aaf4k.util.foldTrackListInit
 import eu.qiou.aaf4k.util.i18n.Message
 import eu.qiou.aaf4k.util.io.ExcelUtil
@@ -133,7 +134,8 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
 
     fun mountStructure(
         loader: eu.qiou.aaf4k.reportings.etl.StructureLoader,
-        id: (ProtoAccount) -> Long = { it.id + 9000000 }
+        id: (ProtoAccount) -> Long = { it.id + 9000000 },
+        timeParameters: TimeParameters = DEFAULT_TIME_PARAMETERS
     ): Reporting {
         val reporting0 = this.copy()
 
@@ -175,11 +177,11 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
             when (it) {
                 is Account -> it.copy(
                     name = tmp.search(it.id)?.name ?: it.name,
-                    timeParameters = TimeParameters.forYear(2020)
+                    timeParameters = timeParameters
                 )
                 is CollectionAccount -> it.copy(
                     name = tmp.search(it.id)?.name ?: it.name,
-                    timeParameters = TimeParameters.forYear(2020)
+                    timeParameters = timeParameters
                 )
                 else -> throw Exception("")
             }
