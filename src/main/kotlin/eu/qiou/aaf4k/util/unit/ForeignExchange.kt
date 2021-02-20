@@ -6,12 +6,20 @@ import eu.qiou.aaf4k.reportings.GlobalConfiguration.DEFAULT_LOCALE
 import eu.qiou.aaf4k.util.io.ECBFxProvider
 import eu.qiou.aaf4k.util.io.FxProvider
 import eu.qiou.aaf4k.util.io.FxUtil
+import eu.qiou.aaf4k.util.io.JSONable
 import eu.qiou.aaf4k.util.time.TimeParameters
 import eu.qiou.aaf4k.util.time.TimeSpan
 import java.time.LocalDate
 import java.util.*
 
-data class ForeignExchange(val functionalCurrency: Currency = DEFAULT_FUNCTIONAL_CURRENCY, val reportingCurrency: Currency = DEFAULT_FUNCTIONAL_CURRENCY, val timeParameters: TimeParameters) {
+data class ForeignExchange(
+    val functionalCurrency: Currency = DEFAULT_FUNCTIONAL_CURRENCY,
+    val reportingCurrency: Currency = DEFAULT_FUNCTIONAL_CURRENCY,
+    val timeParameters: TimeParameters
+) : JSONable {
+    override fun toJSON(): String {
+        return """{"functionalCurrency":"${functionalCurrency.currencyCode}", "reportingCurrency":"${reportingCurrency.currencyCode}", "timeParameters":${timeParameters.toJSON()}}"""
+    }
 
     constructor(functionalCurrencyCode: String = DEFAULT_CURRENCY_CODE, reportingCurrencyCode: String = DEFAULT_CURRENCY_CODE, timeSpan: TimeSpan):this(functionalCurrency = Currency.getInstance(functionalCurrencyCode), reportingCurrency = Currency.getInstance(reportingCurrencyCode), timeParameters = TimeParameters(timeSpan))
     constructor(functionalCurrencyCode: String = DEFAULT_CURRENCY_CODE, reportingCurrencyCode: String = DEFAULT_CURRENCY_CODE, timePoint: LocalDate):this(functionalCurrency = Currency.getInstance(functionalCurrencyCode), reportingCurrency = Currency.getInstance(reportingCurrencyCode), timeParameters = TimeParameters(timePoint))

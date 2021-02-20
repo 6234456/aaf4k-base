@@ -6,10 +6,7 @@ import eu.qiou.aaf4k.util.time.TimeAttribute
 import eu.qiou.aaf4k.util.time.TimeParameters
 import eu.qiou.aaf4k.util.time.TimeSpan
 import eu.qiou.aaf4k.util.time.parseTimeAttribute
-import eu.qiou.aaf4k.util.unit.CurrencyUnit
-import eu.qiou.aaf4k.util.unit.EnumerationUnit
-import eu.qiou.aaf4k.util.unit.PercentageUnit
-import eu.qiou.aaf4k.util.unit.ProtoUnit
+import eu.qiou.aaf4k.util.unit.*
 import org.json.simple.JSONArray
 import org.json.simple.JSONObject
 import org.json.simple.parser.JSONParser
@@ -204,14 +201,43 @@ object FromJSON {
                 }
         ).apply {
             (json["categories"] as JSONArray).forEach {
-                category(it as JSONObject, this).apply {
-                    summarizeResult()
-                }
+                category(it as JSONObject, this)
             }
         }
     }
 
+    fun foreignExchange(json: JSONObject): ForeignExchange {
+        return ForeignExchange(
+            json["functionalCurrency"] as String,
+            json["reportingCurrency"] as String,
+            timeParameters = timeParameters(json["timeParameters"] as JSONObject)
+        )
+    }
 
+    fun reportingPackage(json: JSONObject): ReportingPackage {
+        return ReportingPackage(
+            cover = reporting(json["cover"] as JSONObject),
+            components = (json["components"] as JSONArray).map {
+                it as JSONObject
+                entity(it["entity"] as JSONObject) to reporting(it["reporting"] as JSONObject)
+            }.toMap(),
+            currencies = (json["currencies"] as JSONArray).map {
+                it as JSONObject
+                it["id"] as Long to unit(it["currency"] as JSONObject) as CurrencyUnit
+            }.toMap(),
+            accountIdFXDiff = json["accountIdFXDiff"] as Long?,
+            targetCurrency = unit(json["targetCurrency"] as JSONObject) as CurrencyUnit,
+            timeParameters = timeParameters(json["timeParameters"] as JSONObject),
+            override = (json["override"] as JSONArray).map {
+                it as JSONObject
+                it["id"] as Long to it["value"] as Double
+            }.toMap(),
+            currencyProfile = (json["currencyProfile"] as JSONArray).map {
+                it as JSONObject
+                foreignExchange(it["foreignExchange"] as JSONObject) to it["value"] as Double
+            }.toMap()
+        )
+    }
 
     fun read(json: String): JSONObject {
         return JSONParser().parse(json) as JSONObject
@@ -226,3 +252,4 @@ fun String.toPerson(): Person = FromJSON.person(FromJSON.read(this))
 fun String.toAddress(): Address = FromJSON.address(FromJSON.read(this))
 fun String.toEntity(): Entity = FromJSON.entity(FromJSON.read(this))
 fun String.toReporting(): Reporting = FromJSON.reporting(FromJSON.read(this))
+fun String.toReportingPackage(): ReportingPackage = FromJSON.reportingPackage(FromJSON.read(this))
