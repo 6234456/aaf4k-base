@@ -103,20 +103,24 @@ class Reporting(private val core: ProtoCollectionAccount) : ProtoCollectionAccou
         }.filter { it.value != 0L }.map { it.id }.toSet() + keep
 
         return Reporting(this.core.shorten(whiteList = whiteList) as ProtoCollectionAccount).apply {
-            this@Reporting.categories.forEach { it.deepCopy(this) }
-            nextCategoryIndex = this@Reporting.nextCategoryIndex
-            consCategoriesAdded = this@Reporting.consCategoriesAdded
-            reclAdjCategoriesAdded = this@Reporting.reclAdjCategoriesAdded
+            copyCategoriesFrom(this@Reporting)
         }
     }
 
 
     override fun deepCopy(): ProtoAccount {
         return Reporting(core.deepCopy() as CollectionAccount).apply {
-            this@Reporting.categories.forEach { it.deepCopy(this) }
-            nextCategoryIndex = this@Reporting.nextCategoryIndex
-            consCategoriesAdded = this@Reporting.consCategoriesAdded
-            reclAdjCategoriesAdded = this@Reporting.reclAdjCategoriesAdded
+            copyCategoriesFrom(this@Reporting)
+        }
+    }
+
+    fun copyCategoriesFrom(that: Reporting): Reporting {
+        return this.apply {
+            this.categories.clear()
+            that.categories.forEach { it.deepCopy(this) }
+            nextCategoryIndex = that.nextCategoryIndex
+            consCategoriesAdded = that.consCategoriesAdded
+            reclAdjCategoriesAdded = that.reclAdjCategoriesAdded
         }
     }
 

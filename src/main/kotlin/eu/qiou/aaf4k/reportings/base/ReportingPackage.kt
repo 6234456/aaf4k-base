@@ -2,6 +2,7 @@ package eu.qiou.aaf4k.reportings.base
 
 import eu.qiou.aaf4k.util.io.ExcelUtil
 import eu.qiou.aaf4k.util.io.JSONable
+import eu.qiou.aaf4k.util.merge
 import eu.qiou.aaf4k.util.mkString
 import eu.qiou.aaf4k.util.template.Template
 import eu.qiou.aaf4k.util.time.TimeParameters
@@ -33,6 +34,26 @@ class ReportingPackage(
             "{\"foreignExchange\":${it.first.toJSON()}, \"value\":${it.second}}"
         }.mkString()}
         }"""
+    }
+
+    // SuSa vor der Anpassung
+    fun raw(): Map<Long, Double> {
+        return components.asSequence().fold(mapOf<Long, Double>()) { acc, seq ->
+            acc.merge(
+                seq.value.fx(
+                    accountIdFXDiff = accountIdFXDiff!!,
+                    sourceCurrency = currencies.getOrDefault(seq.key.id, targetCurrency),
+                    timeParameters = timeParameters,
+                    targetCurrency = targetCurrency,
+                    override = override
+                ).toDataMap()
+            )
+        }
+    }
+
+    // Summebilanz vor der Anpassung
+    fun toReporting(): Reporting {
+        return Reporting(cover.copy().update(data = raw()) as CollectionAccount).copyCategoriesFrom(cover)
     }
 
     fun toXl(

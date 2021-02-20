@@ -164,3 +164,9 @@ fun <K> Iterable<K>.sample(n: Int): List<List<K>> = when {
     n == 1 -> this.map { listOf(it) }
     else -> listOf()
 }
+
+// merge by add up the value of the same key
+fun <K> Map<K, Number>.merge(map: Map<K, Number>): Map<K, Double> {
+    return (this.asSequence() + map.asSequence()).groupBy { it.key }
+        .mapValues { it.value.fold(0.0) { acc, entry -> acc + entry.value.toDouble() } }.toMap()
+}
