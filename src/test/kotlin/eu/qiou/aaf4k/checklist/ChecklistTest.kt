@@ -1,5 +1,6 @@
 package eu.qiou.aaf4k.checklist
 
+import eu.qiou.aaf4k.util.mkString
 import org.junit.Test
 
 class ChecklistTest {
@@ -27,18 +28,15 @@ class ChecklistTest {
                 )
             )
         )
-
-        println(gmbh.apply { this.state = State.FULFILLED })
-
-        println(n)
-
-        n.update(
-            mapOf(
-                124L to Item(124L, "", State.FULFILLED),
-                1241L to Item(1241L, "", State.FULFILLED),
-                1242L to Item(1242L, "", State.FULFILLED)
-            )
-        ).forEach { println(it) }
+        println(
+            n.update(
+                mapOf(
+                    124L to State.FULFILLED,
+                    1241L to State.FULFILLED,
+                    1242L to State.FULFILLED
+                )
+            ).mkString("\n\n", "", "")
+        )
 
     }
 }

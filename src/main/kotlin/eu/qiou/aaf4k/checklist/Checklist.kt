@@ -2,7 +2,7 @@ package eu.qiou.aaf4k.checklist
 
 class Checklist {
     val pool: MutableList<Node> = mutableListOf()
-    val params: MutableMap<Long, Item> = mutableMapOf()
+    val params: MutableMap<Long, State> = mutableMapOf()
 
     fun next(): Node? {
         return pool.last().judgement?.judge(params)

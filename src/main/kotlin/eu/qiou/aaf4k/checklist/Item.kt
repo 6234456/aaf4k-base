@@ -8,5 +8,5 @@ data class Item(override val id: Long, val desc: String, var state: State = Stat
     }
 }
 
-operator fun Item.not(): Boolean = this.state != State.FULFILLED
-operator fun Item.unaryPlus(): Boolean = this.state == State.FULFILLED
+operator fun Item.not(): Boolean = !(+this)
+operator fun Item.unaryPlus(): Boolean = +this.state

@@ -1,7 +1,7 @@
 package eu.qiou.aaf4k.checklist
 
 interface Judgement {
-    fun judge(env: Map<Long, Item>): Node
+    fun judge(env: Map<Long, State>): Node
     fun choice(): List<Item>
-    fun update(env: Map<Long, Item>): Judgement
+    fun update(env: Map<Long, State>): Judgement
 }

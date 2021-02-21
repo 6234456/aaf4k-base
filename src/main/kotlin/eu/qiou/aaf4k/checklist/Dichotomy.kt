@@ -5,14 +5,14 @@ data class Dichotomy(val item: Item, val ifTrue: Node, val ifFalse: Node) : Judg
         return listOf(item)
     }
 
-    override fun update(env: Map<Long, Item>): Judgement {
+    override fun update(env: Map<Long, State>): Judgement {
         return if (env.containsKey(item.id))
-            this.copy(item.copy(state = env[item.id]!!.state))
+            this.copy(item.copy(state = env[item.id]!!))
         else
             this
     }
 
-    override fun judge(env: Map<Long, Item>): Node {
+    override fun judge(env: Map<Long, State>): Node {
 
         if (!env.containsKey(item.id)) throw Exception("Incomplete answer for $item")
 

@@ -5,11 +5,11 @@ class Monotony(val node: Node) : Judgement {
         return listOf()
     }
 
-    override fun update(env: Map<Long, Item>): Judgement {
+    override fun update(env: Map<Long, State>): Judgement {
         return this
     }
 
-    override fun judge(env: Map<Long, Item>): Node {
+    override fun judge(env: Map<Long, State>): Node {
         return node
     }
 }
