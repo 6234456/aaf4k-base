@@ -20,8 +20,8 @@ interface ProtoCollectionAccount : ProtoAccount, Drilldownable<ProtoCollectionAc
     override fun getParents(): Collection<ProtoCollectionAccount>? = superAccounts
 
     override fun add(child: ProtoAccount, index: Int?, percentage: Double): ProtoCollectionAccount {
-        //do nothing if child already exists and this account is not statistical account
-        if (!isStatistical && child in this)
+        //do nothing if child already exists
+        if (child in this)
             return this
 
         if (index == null)
