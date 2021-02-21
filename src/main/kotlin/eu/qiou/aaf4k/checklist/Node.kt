@@ -24,7 +24,7 @@ data class Node(
     }
 
     override fun toString(): String {
-        return if (judgement == null) "" else "<$desc>\n$judgement"
+        return if (judgement == null) "-> $desc" else "<$desc>\n$judgement"
     }
 }
 

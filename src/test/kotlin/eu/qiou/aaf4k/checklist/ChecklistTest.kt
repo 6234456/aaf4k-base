@@ -31,11 +31,11 @@ class ChecklistTest {
         println(
             n.update(
                 mapOf(
-                    124L to State.FULFILLED,
+                    125L to State.FULFILLED,
                     1241L to State.FULFILLED,
                     1242L to State.FULFILLED
                 )
-            ).mkString("\n\n", "", "")
+            ).mkString("\n\n", "---------\n", "\n---------")
         )
 
     }

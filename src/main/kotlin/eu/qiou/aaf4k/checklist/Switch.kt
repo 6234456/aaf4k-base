@@ -24,7 +24,7 @@ class Switch(val choices: Map<Item, Node>) : Judgement {
             }
         }
 
-        throw Exception("Please make a choice.")
+        throw Exception("Please make a choice:${choices.keys.map { it.id }.mkString()}")
     }
 
     override fun toString(): String {
