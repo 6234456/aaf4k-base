@@ -15,7 +15,7 @@ class ChecklistTest {
         val c = Checklist()
 
         val correct = Node("Correct")
-        val wrong = Node("wrong")
+        val wrong = Node("Wrong")
 
         val ar = Node("Vergütung Aufsichtsrat", Dichotomy(ar_rem, correct, wrong))
 

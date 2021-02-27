@@ -12,7 +12,7 @@ enum class Citations(var number: String = "") {
     HALF_SENTENCE,
     ALTERNATIVE,
     NOTE, // Textziffer
-    LETTER,
+    LIT,
     DOUBLE_LETTER;
 
     override fun toString(): String {
@@ -29,7 +29,7 @@ enum class Citations(var number: String = "") {
             HALF_SENTENCE -> "Halbsatz $number"
             ALTERNATIVE -> "Alternativ $number"
             DOUBLE_LETTER -> "Doppelbuchstabe $number"
-            LETTER -> "Buchstabe $number"
+            LIT -> "Buchstabe $number"
         }
     }
 
@@ -62,7 +62,7 @@ enum class Citations(var number: String = "") {
             HALF_SENTENCE,
             ALTERNATIVE,
             DOUBLE_LETTER,
-            LETTER
+                LIT
             )
         ).toMap()
 
