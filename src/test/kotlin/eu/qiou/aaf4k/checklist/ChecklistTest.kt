@@ -30,10 +30,9 @@ class ChecklistTest {
         )
         println(
             n.update(
-                mapOf(
-                    125L to State.FULFILLED,
-                    1241L to State.FULFILLED,
-                    1242L to State.FULFILLED
+                listOf(
+                    123L,
+                    1242L
                 )
             ).mkString("\n\n", "---------\n", "\n---------")
         )

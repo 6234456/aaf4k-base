@@ -19,6 +19,13 @@ data class Node(
             listOf(this.copy(judgement = judgement.update(answer))) + judgement.judge(answer).update(answer)
     }
 
+    fun update(answer: Collection<Long>): List<Node> {
+        return update(answer.fold(mutableMapOf<Long, State>()) { acc, l ->
+            acc.putIfAbsent(l, State.FULFILLED)
+            acc
+        })
+    }
+
     fun updateStateCode(answer: Map<Long, Int>): List<Node> {
         return update(answer.mapValues { State.of(it.value) })
     }
