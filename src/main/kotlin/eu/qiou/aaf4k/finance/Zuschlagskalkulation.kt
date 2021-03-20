@@ -27,20 +27,20 @@ class Zuschlagskalkulation(
         directMaterialUnitCost: Map<Kostenstelle, Double>, directLaborUnitCost: Map<Kostenstelle, Double>,
         specialLaborUnitCost: Double = 0.0
     ): Kostentraegerrechnung {
-        val directMaterialUnitCost = directMaterialUnitCost.mapValues { it.value.roundUpTo(decimalPrecision) }
-        val indirectMaterialUnitCost = directMaterialUnitCost.mapValues {
+        val directMaterialUnitCostRounded = directMaterialUnitCost.mapValues { it.value.roundUpTo(decimalPrecision) }
+        val indirectMaterialUnitCost = directMaterialUnitCostRounded.mapValues {
             (it.value * (materialCostAllocationRate[it.key] ?: error(""))).roundUpTo(decimalPrecision)
         }
-        val directLaborUnitCost = (directLaborUnitCost).mapValues { it.value.roundUpTo(decimalPrecision) }
-        val specialLaborUnitCost = (specialLaborUnitCost).roundUpTo(decimalPrecision)
-        val indirectLaborUnitCost = directLaborUnitCost.mapValues {
+        val directLaborUnitCostRounded = (directLaborUnitCost).mapValues { it.value.roundUpTo(decimalPrecision) }
+        val specialLaborUnitCostRounded = (specialLaborUnitCost).roundUpTo(decimalPrecision)
+        val indirectLaborUnitCost = directLaborUnitCostRounded.mapValues {
             (it.value * (laborCostAllocationRate[it.key] ?: error(""))).roundUpTo(decimalPrecision)
         }
-        val laborUnitCost = (directLaborUnitCost.values.reduce { acc, d -> acc + d } +
-                indirectLaborUnitCost.values.reduce { acc, d -> acc + d } + specialLaborUnitCost).roundUpTo(
+        val laborUnitCost = (directLaborUnitCostRounded.values.reduce { acc, d -> acc + d } +
+                indirectLaborUnitCost.values.reduce { acc, d -> acc + d } + specialLaborUnitCostRounded).roundUpTo(
             decimalPrecision
         )
-        val materialUnitCost = (directMaterialUnitCost.values.reduce { acc, d -> acc + d } +
+        val materialUnitCost = (directMaterialUnitCostRounded.values.reduce { acc, d -> acc + d } +
                 indirectMaterialUnitCost.values.reduce { acc, d -> acc + d }).roundUpTo(decimalPrecision)
         val herstellCost = (laborUnitCost + materialUnitCost).roundUpTo(decimalPrecision)
         val indirectManagementUnitCost = (herstellCost * managementCostAllocationRate).roundUpTo(decimalPrecision)
@@ -50,12 +50,12 @@ class Zuschlagskalkulation(
         val selbstCost = herstellCost + managementAndDistributionCost
 
         return Kostentraegerrechnung(
-            directMaterialUnitCost = directMaterialUnitCost,
+            directMaterialUnitCost = directMaterialUnitCostRounded,
             indirectMaterialUnitCost = indirectMaterialUnitCost,
-            directLaborUnitCost = directLaborUnitCost,
+            directLaborUnitCost = directLaborUnitCostRounded,
             indirectLaborUnitCost = indirectLaborUnitCost,
             laborUnitCost = laborUnitCost,
-            specialLaborUnitCost = specialLaborUnitCost,
+            specialLaborUnitCost = specialLaborUnitCostRounded,
             indirectManagementUnitCost = indirectManagementUnitCost,
             indirectDistributionUnitCost = indirectDistributionUnitCost,
             herstellkosten = herstellCost,
