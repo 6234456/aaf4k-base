@@ -37,7 +37,7 @@ data class Leistungsmatrix(
 
             // excluding the contribution to itself
             val total =
-                if (it.isAuxiliary) cost / contribution.reduceIndexed { i, acc, d -> acc + if (i >= index) d else 0.0 } else cost
+                if (it.isAuxiliary) cost / contribution.mapIndexed { i, d -> if (i >= index) d else 0.0 }.reduce { acc, d -> acc + d } else cost
             val distributed = if (it.isAuxiliary) contribution.mapIndexed { i, d -> if (i >= index) d * total else 0.0 }
             else contribution.mapIndexed { i, d -> if (i == index) cost else 0.0 }
 
