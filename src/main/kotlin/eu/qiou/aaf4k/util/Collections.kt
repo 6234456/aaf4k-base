@@ -13,7 +13,6 @@ fun <K, V> Map<K, V>.mergeReduce(other: Map<K, V>, reduce: (V, V) -> V): Map<K, 
 
 fun Iterable<Any>.mkString(separator: String = ", ", prefix: String = "[", affix: String = "]") = CollectionToString.mkString(this, separator, prefix, affix)
 
-
 fun Iterable<JSONable>.mkJSON() = CollectionToString.mkJSON(this)
 
 fun Map<JSONable, Number>.mkJSON() = CollectionToString.mkString(this.map { """{"key":${it.key.toJSON()}, "value": ${it.value} }""" })
@@ -156,6 +155,27 @@ fun <K> Iterable<K>.rotate(n: Int = 1): List<K> = when (this.count()) {
     }
 }
 
+/**
+ *  sort this with the pattern of the source iterable
+ *
+ *  listOf(1, 2, 3, 4, 5).sortedWithOrderList(iterable = listOf(1, -1, 4, 2, 3))
+ *  to
+ *  [2, 1, 4, 5, 3]
+ *
+ */
+
+fun <K, R : Comparable<R>> Iterable<K>.sortedWithOrderList(iterable: Iterable<R>, desc: Boolean = false): List<K> {
+    assert(iterable.count() == this.count())
+    return iterable.zip(this).let { x ->
+        if (desc) {
+            x.sortedByDescending { it.first }
+        } else {
+            x.sortedBy { it.first }
+        }.map {
+            it.second
+        }
+    }
+}
 
 // iterable with distinct elements, take n sample out of them, return the possible combination
 fun <K> Iterable<K>.sample(n: Int): List<List<K>> = when {
