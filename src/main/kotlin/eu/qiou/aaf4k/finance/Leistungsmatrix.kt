@@ -28,6 +28,29 @@ data class Leistungsmatrix(
     private val mapPos2CostCenter = costCenters.mapIndexed { index, kostenstelle -> index to kostenstelle }.toMap()
     private val mapCostCenter2Pos = costCenters.mapIndexed { index, kostenstelle -> kostenstelle to index }.toMap()
 
+    fun anbauVerfahren(): Array<Pair<Kostenstelle, Array<Double>>> {
+        val orderList: List<Int> = costCenters.map { if (it.isAuxiliary) 0 else 1 }
+        val costTotal = matrix.mapIndexed { index, doubles ->
+            if (orderList[index] == 1)
+                indirectCosts[index]
+            else
+                indirectCosts[index] / doubles.foldIndexed(0.0) { i, acc, d -> acc + d * orderList[i] }
+        }
+
+        return matrix.mapIndexed { i, data ->
+            val total = costTotal[i]
+            mapPos2CostCenter[i]!! to (if (orderList[i] == 1)
+                data.mapIndexed { index, d ->
+                    if (index == i) total else 0.0
+                }
+            else
+                data.mapIndexed { index, d ->
+                    total * orderList[index] * d
+                }).toTypedArray()
+        }.toTypedArray()
+    }
+
+
     fun stufenleiterVerfahren(): Array<Pair<Kostenstelle, Array<Double>>> {
         // recording the cascading of the indirectCosts
         var costTemp = indirectCosts

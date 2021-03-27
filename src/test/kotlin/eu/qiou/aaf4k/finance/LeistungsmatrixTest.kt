@@ -30,6 +30,8 @@ class LeistungsmatrixTest {
         println("----------")
         p.gleichungsVerfahren().forEach { println("${it.first.name} : ${it.second.toList().mkString()}") }
         println("----------")
+        p.anbauVerfahren().forEach { println("${it.first.name} : ${it.second.toList().mkString()}") }
+        println("----------")
 
         val p1 = Leistungsmatrix(
             arrayOf(
