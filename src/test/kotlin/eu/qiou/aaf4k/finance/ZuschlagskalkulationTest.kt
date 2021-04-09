@@ -1,6 +1,6 @@
 package eu.qiou.aaf4k.finance
 
-import eu.qiou.aaf4k.reportings.plan.Annunity
+import eu.qiou.aaf4k.reportings.plan.Annuity
 import eu.qiou.aaf4k.reportings.plan.PresentValue
 import eu.qiou.aaf4k.util.roundUpTo
 import org.junit.Test
@@ -24,7 +24,7 @@ class ZuschlagskalkulationTest {
 
     @Test
     fun trail() {
-        val a = Annunity(5, 0.1).payment(1000.0)
+        val a = Annuity(5, 0.1).payment(1000.0)
         val p = PresentValue(listOf(29.77, 31.08, 32.46, 33.88, 35.39), 0.0555, 36.94)
         println(p.presentValue.map { it.roundUpTo(4) })
         println(p.value)
