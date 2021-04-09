@@ -34,16 +34,17 @@ class TrailAndError(
                     lastValue = if (abs(last) > abs(current)) trail else lastValue
                     last = if (abs(last) > abs(current)) current else last
                     trail = temp
+                    lastStep = step
                 } else if ((last > current && current > 0) || (last < current && current < 0)) {
                     lastStep *= 2
                     lastValue = trail
                     trail += lastStep
                     last = current
                 } else {
-                    lastStep = step
-                    lastValue = trail
-                    trail -= lastStep
-                    last = current
+                    lastStep *= -2
+                    lastValue = if (abs(last) > abs(current)) trail else lastValue
+                    last = if (abs(last) > abs(current)) current else last
+                    trail += lastStep
                 }
             }
 
