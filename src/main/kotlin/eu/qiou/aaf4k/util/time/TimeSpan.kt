@@ -14,7 +14,13 @@ import java.util.*
  * @since       1.0.0
  * @version     1.0.0
  */
-data class TimeSpan(val start: LocalDate, val end: LocalDate) {
+data class TimeSpan(val start: LocalDate, val end: LocalDate) : Comparable<TimeSpan> {
+    override fun compareTo(other: TimeSpan): Int {
+        if (start == other.start)
+            return end.compareTo(other.end)
+
+        return start.compareTo(other.start)
+    }
 
     data class ChronoSpan(val amount: Long = 1, val unit: ChronoUnit = ChronoUnit.MONTHS) {
         init {
@@ -157,8 +163,13 @@ data class TimeSpan(val start: LocalDate, val end: LocalDate) {
 
     companion object {
 
-        fun forYear(year: Int): TimeSpan {
-            return TimeSpan(LocalDate.of(year, 1, 1), LocalDate.of(year, 12, 31))
+        fun forYear(year: Int, toYear: Int = year): TimeSpan {
+            return TimeSpan(LocalDate.of(year, 1, 1), LocalDate.of(toYear, 12, 31)).apply {
+                drillDownTo = ChronoSpan(
+                    1,
+                    if (year == toYear) ChronoUnit.MONTHS else ChronoUnit.YEARS
+                )
+            }
         }
 
         // containing the first Thursday of the year
@@ -178,10 +189,14 @@ data class TimeSpan(val start: LocalDate, val end: LocalDate) {
                         else TimeSpan(LocalDate.of(year, 7, 1), LocalDate.of(year, 12, 31))
         }
 
-        fun forMonth(year: Int, month: Int): TimeSpan {
+        fun forMonth(year: Int, month: Int, toYear: Int = year, toMonth: Int = month): TimeSpan {
             val start = LocalDate.of(year, month, 1)
-            return TimeSpan(start, LocalDate.of(year, month, start.lengthOfMonth())).apply {
-                drillDownTo = ChronoSpan(1, ChronoUnit.DAYS)
+            val ends = LocalDate.of(toYear, toMonth, 1)
+            return TimeSpan(start, LocalDate.of(toYear, toMonth, ends.lengthOfMonth())).apply {
+                drillDownTo = ChronoSpan(
+                    1,
+                    if (start == ends) ChronoUnit.DAYS else ChronoUnit.MONTHS
+                )
             }
         }
 

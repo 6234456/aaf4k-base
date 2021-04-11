@@ -1,8 +1,6 @@
 package eu.qiou.aaf4k.reportings.plan
 
-import eu.qiou.aaf4k.util.foldTrackListInit
-import eu.qiou.aaf4k.util.mapValuesIndexed
-import eu.qiou.aaf4k.util.mergeReduce
+import eu.qiou.aaf4k.util.*
 import eu.qiou.aaf4k.util.time.TimeSpan
 
 interface Cashflow {
@@ -16,7 +14,7 @@ interface Cashflow {
         val cashflow = this.cashflow()
         val value = cashflow.values
 
-        val res = value.foldTrackListInit(value.first()) { acc, x, i ->
+        val res = value.foldTrackList(value.first()) { acc, x, i ->
             if (i == 0) {
                 acc * -1
             } else {
@@ -24,21 +22,27 @@ interface Cashflow {
             }
         }
 
-        return object : Cashflow {
-            override fun cashflow(): Map<TimeSpan, Double> {
-                return cashflow.mapValuesIndexed { _, i -> res[i] }
-            }
-        }
+        return toCashflow(cashflow.mapValuesIndexed { _, i -> res[i] })
     }
 
+    fun str(decimalPrecision: Int = 4): String = cashflow().values.map { it.roundUpTo(decimalPrecision) }.mkString()
 
-    operator fun plus(other: Cashflow): Cashflow = object : Cashflow {
-        override fun cashflow(): Map<TimeSpan, Double> {
-            return this@Cashflow.cashflow().mergeReduce(other = other.cashflow()) { x, y -> x + y }
-        }
-    }
+
+    operator fun plus(other: Cashflow): Cashflow =
+        toCashflow(this@Cashflow.cashflow().mergeReduce(other = other.cashflow()) { x, y -> x + y })
+
+    operator fun plus(other: Iterable<Double>): Cashflow = toCashflow(other, this.cashflow().keys.sortedBy { it })
 
     companion object {
+        fun toCashflow(items: Iterable<Double>, periods: Iterable<TimeSpan>): Cashflow =
+            // fill the rest periods with 0
+            toCashflow(periods.zip(items + (if (periods.count() > items.count()) (1..periods.count() - items.count()).map { 0.0 } else listOf())).toMap())
+
+        fun toCashflow(map: Map<TimeSpan, Double>): Cashflow = object : Cashflow {
+            override fun cashflow(): Map<TimeSpan, Double> {
+                return map
+            }
+        }
         fun consolidate(items: Iterable<Cashflow>): Cashflow = items.reduce { acc, cashflow -> acc + cashflow }
     }
 }
